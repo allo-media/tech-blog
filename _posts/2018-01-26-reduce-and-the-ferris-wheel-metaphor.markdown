@@ -1,9 +1,11 @@
 ---
 layout: post
-title:  "Introducing Elm to Redux users"
+title:  "Reduce and the Ferris wheel metaphor"
 date:   2018-01-26 17:53:00 +0100
 categories: elm react javascript
 ---
+
+This is a short anecddote about how I approached teaching things to someone else.
 
 I recently had to introduce some [Elm] concepts to a coworker who had some experience with [React] and [Redux]. One of these concepts was [List.foldl], a reduction function which exists in many languages, specifically as [Array#reduce] in JavaScript.
 
