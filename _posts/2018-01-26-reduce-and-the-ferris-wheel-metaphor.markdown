@@ -64,14 +64,16 @@ We moved on and decided to reimplement the same thing in Elm, using `foldl`. Its
 foldl : (a -> b -> b) -> b -> List a -> b
 {% endhighlight %}
 
-Wow, that looks complicated, especially when you're new to Elm. Let's decompose:
+Wow, that looks complicated, especially when you're new to Elm.
 
-- `(a -> b -> b)` means we want a function, taking two arguments a `a` and a `b` and returning a `b`. That sounds a lot like our `reducer` function in JavaScript! If so, `a` is an action, and `b` a state.
+Function signatures in Elm don't separate argument from return types, and are separated by arrows (`->`); so, let's decompose this function signature:
+
+- `(a -> b -> b)`, the first argument, means we want a function, taking two arguments typed `a` and `b` and returning a `b`. That sounds a lot like our `reducer` function in JavaScript! If so, `a` is an action, and `b` a state.
 - the next argument, typed as `b`, is the initial state we start reducing our list of actions from.
 - the next argument, `List a`, is our list of actions.
 - And all this must return a `b`, hence a new state. We have the exact definition of what we're after.
 
-Actually our own `foldl` use would have been much more obvious if we saw this, replacing `a` by `Action` and `b` by `State`:
+Actually our own use of `foldl` would have been much more obvious if we initially saw this, replacing `a` by `Action` and `b` by `State`:
 
 {% highlight haskell %}
 foldl : (Action -> State -> State) -> State -> List Action -> State
