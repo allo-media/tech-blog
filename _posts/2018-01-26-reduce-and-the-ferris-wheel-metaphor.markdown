@@ -22,7 +22,7 @@ So as he was starring at me like I was a crazy person, and as I knew he did use 
 
 We started with a silly reimplementation of redux' reducers in plain js:
 
-```js
+{% highlight javascript %}
 const init = {water: 0}
 
 const actions = [
@@ -45,7 +45,7 @@ function reducer(state, action) {
 const state = actions.reduce(reducer, init)
 
 console.log(state) // {water: 3}
-```
+{% endhighlight %}
 
 He was like "oh yeah, I know that". Good!
 
@@ -70,7 +70,7 @@ Wow, that looks complicated, especially when you're new to Elm. Let's decompose:
 - the next argument, `List a`, is certainly our list of actions.
 - And all this must return a `b`, hence a new state. We have the exact definition of what we're after.
 
-```elm
+{% highlight haskell %}
 type Action
     = AddWater
     | Empty
@@ -101,7 +101,7 @@ update actions state =
 
 main =
     text <| toString (update actions init) -- {water: 3}
-```
+{% endhighlight %}
 
 We quickly drafted this [on Ellie](https://ellie-app.com/kL3dJS7Gta1/1). It's not graphically impressive, but it works.
 
@@ -113,9 +113,9 @@ The funny thing being, Redux design itself was initially inspired by Elm!
 
 In conclusion, here are quick takeaways when facing something difficult to understand:
 
-- start with finding a metaphor, even a silly one; that helps summarizing the problem, expressing your goal and ensure you get the big picture of it;
-- slice the problem down to the smallest understandable chunks you can, then move to the next larger one when you're done;
-- always try to map what you're trying to learn to things you've already learned; past experiences are good tools for that.
+- start with **finding a metaphor**, even a silly one; that helps summarizing the problem, expressing your goal and ensure you get the big picture of it;
+- **slice the problem down to the smallest understandable chunks** you can, then move to the next larger one when you're done;
+- always try to **map what you're trying to learn to things you've already learned**; past experiences are good tools for that.
 
 [Array#reduce]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
 [Elm]: http://elm-lang.org/

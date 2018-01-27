@@ -13,10 +13,10 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: Allo-Media Tech Blog
-email: ""
+title: Allo-Media Technical Blog
+email: contact@allo-media.net
 description: >- # this means to ignore newlines until "baseurl:"
-  Allo-Media technical blog.
+  Random things we're discovering & learning at Allo-Media.
 baseurl: "/tech-blog" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: allomedia
@@ -24,7 +24,7 @@ github_username:  allo-media
 
 # Build settings
 markdown: kramdown
-theme: jekyll-theme-cayman
+theme: minima
 plugins:
   - jekyll-feed
 
