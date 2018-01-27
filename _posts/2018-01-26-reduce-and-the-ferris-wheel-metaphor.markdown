@@ -52,7 +52,7 @@ He was like "oh yeah, I know that". Good!
 
 So I could use the Ferris wheel metaphor again:
 
-- `state` represents the state of the wheel basket (and the quatity of water in it)
+- `state` represents the state of the wheel basket (and the quantity of water in it)
 - `init` is the initial state of the wheel basket (it contains no water yet)
 - `actions` are the list of operations to proceed each time the basket reaches the ground again (here, filling the basket with water from the lake, sometimes emptying the basket)
 
@@ -85,7 +85,11 @@ init =
 
 actions : List Action
 actions =
-    [ AddWater, Empty, AddWater, AddWater ]
+    [ AddWater
+    , Empty
+    , AddWater
+    , AddWater
+    ]
 
 reducer : Action -> State -> State
 reducer action state =
