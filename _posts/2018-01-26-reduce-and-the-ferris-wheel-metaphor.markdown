@@ -66,7 +66,7 @@ foldl : (a -> b -> b) -> b -> List a -> b
 
 Wow, that looks complicated, especially when you're new to Elm.
 
-Function signatures in Elm don't separate argument from return types, and are separated by arrows (`->`); so, let's decompose this function signature:
+Function signatures in Elm don't separate argument from return types, and are separated by arrows (<code style="white-space: nowrap">-></code>); so, let's decompose this function signature:
 
 - `(a -> b -> b)`, the first argument, means we want a function, taking two arguments typed `a` and `b` and returning a `b`. That sounds a lot like our `reducer` function in JavaScript! If so, `a` is an action, and `b` a state.
 - the next argument, typed as `b`, is the initial state we start reducing our list of actions from.
