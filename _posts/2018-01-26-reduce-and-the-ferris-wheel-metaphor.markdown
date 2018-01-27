@@ -27,10 +27,7 @@ const init = {water: 0}
 
 const actions = [
     {type: "ADD_WATER"},
-<<<<<<< HEAD
-=======
     {type: "EMPTY"},
->>>>>>> master
     {type: "ADD_WATER"},
     {type: "ADD_WATER"},
 ]
@@ -48,11 +45,7 @@ function reducer(state, action) {
 
 const state = actions.reduce(reducer, init)
 
-<<<<<<< HEAD
-console.log(state) // {water: 3}
-=======
 console.log(state) // {water: 2}
->>>>>>> master
 {% endhighlight %}
 
 He was like "oh yeah, I know that". Good!
@@ -61,11 +54,7 @@ So I could use the Ferris wheel metaphor again:
 
 - `state` represents the state of the wheel basket (and the quatity of water in it)
 - `init` is the initial state of the wheel basket (it contains no water yet)
-<<<<<<< HEAD
-- `actions` are the list of operations to proceed each time the basket reaches the ground again (here, filling the basket with water from the lake)
-=======
 - `actions` are the list of operations to proceed each time the basket reaches the ground again (here, filling the basket with water from the lake, sometimes emptying the basket)
->>>>>>> master
 
 For the records, yes my coworker was still very oddly looking at me.
 
