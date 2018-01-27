@@ -60,9 +60,9 @@ For the records, yes my coworker was still very oddly looking at me.
 
 We moved on and decided to reimplement the same thing in Elm, using `foldl`. Its type signature is:
 
-```elm
+{% highlight haskell %}
 foldl : (a -> b -> b) -> b -> List a -> b
-```
+{% endhighlight %}
 
 Wow, that looks complicated, especially when you're new to Elm. Let's decompose:
 
@@ -71,7 +71,13 @@ Wow, that looks complicated, especially when you're new to Elm. Let's decompose:
 - the next argument, `List a`, is certainly our list of actions.
 - And all this must return a `b`, hence a new state. We have the exact definition of what we're after.
 
-> Note: if you're struggling with these `a` and `b`s, you should probably read a little about [Generic Types].
+Actually our own `foldl` use would have been much more obvious if we saw this, replacing `a` by `Action` and `b` by `State`:
+
+{% highlight haskell %}
+foldl : (Action -> State -> State) -> State -> List Action -> State
+{% endhighlight %}
+
+> Note: if you're still struggling with these `a` and `b`s, you should probably read a little about [Generic Types].
 
 Our resulting minimalistic implementation was:
 
