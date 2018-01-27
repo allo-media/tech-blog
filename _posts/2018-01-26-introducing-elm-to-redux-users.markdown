@@ -101,7 +101,7 @@ main =
     text <| toString (update actions init) -- {water: 3}
 ```
 
-The Ellie sample is available at https://ellie-app.com/kL3dJS7Gta1/1. It's not graphically impressive, but it works.
+We quickly drafted this [on Ellie](https://ellie-app.com/kL3dJS7Gta1/1). It's not graphically impressive, but it works.
 
 That was it, it was more obvious how to map things my coworker already knew to something new to him, while in fact it was actually exactly the same thing, expressed slightly differently from a syntax perspective.
 
