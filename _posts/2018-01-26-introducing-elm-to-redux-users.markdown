@@ -51,7 +51,7 @@ So I could use the Ferris wheel metaphor again:
 
 - `state` represents the state of the wheel basket (and the quatity of water in it)
 - `init` is the initial state of the wheel basket (it contains no water yet)
-- `actions` are the list of wheel full rotations where the basket reach the ground again, with the operation to proceed (here, filling the basket with water from the lake)
+- `actions` are the list of wheel full rotations where the basket reaches the ground again, with the operation to proceed (here, filling the basket with water from the lake)
 
 For the records, yes my coworker was still very oddly looking at me.
 
