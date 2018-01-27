@@ -66,9 +66,9 @@ foldl : (a -> b -> b) -> b -> List a -> b
 
 Wow, that looks complicated, especially when you're new to Elm. Let's decompose:
 
-- `(a -> b -> b)` means we want a function, taking two arguments `a` and `b` and returning `b`. That sounds a lot like our `reducer` function in JavaScript! If so, `a` is an action, and `b` a state.
-- the next argument, `b`, is the same type as what we must return from the function passed as the first argument; so that means a state! It's probably the initial state we start reducing our list of actions from.
-- the next argument, `List a`, is certainly our list of actions.
+- `(a -> b -> b)` means we want a function, taking two arguments a `a` and a `b` and returning a `b`. That sounds a lot like our `reducer` function in JavaScript! If so, `a` is an action, and `b` a state.
+- the next argument, typed as `b`, is the initial state we start reducing our list of actions from.
+- the next argument, `List a`, is our list of actions.
 - And all this must return a `b`, hence a new state. We have the exact definition of what we're after.
 
 Actually our own `foldl` use would have been much more obvious if we saw this, replacing `a` by `Action` and `b` by `State`:
