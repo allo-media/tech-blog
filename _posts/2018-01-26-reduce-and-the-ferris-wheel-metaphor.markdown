@@ -71,6 +71,10 @@ Wow, that looks complicated, especially when you're new to Elm. Let's decompose:
 - the next argument, `List a`, is certainly our list of actions.
 - And all this must return a `b`, hence a new state. We have the exact definition of what we're after.
 
+> Note: if you're struggling with these `a` and `b`s, you should probably read a little about [Generic Types].
+
+Our resulting minimalistic implementation was:
+
 {% highlight haskell %}
 type Action
     = AddWater
@@ -126,6 +130,7 @@ In conclusion, here are quick takeaways when facing something difficult to under
 [Elm]: http://elm-lang.org/
 [Elm Architecture]: https://guide.elm-lang.org/architecture/
 [Ferris wheel]: https://en.wikipedia.org/wiki/Ferris_wheel
+[Generic Types]: https://guide.elm-lang.org/types/union_types.html#generic-data-structures
 [List.foldl]: http://package.elm-lang.org/packages/elm-lang/core/latest/List#foldl
 [React]: https://reactjs.org/
 [Redux]: https://redux.js.org/
