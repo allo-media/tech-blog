@@ -25,6 +25,27 @@ We started with a silly reimplementation of redux' reducers in plain js:
 {% highlight javascript %}
 const init = {water: 0}
 
+function reducer(state, action) {
+    switch(action.type) {
+        case "EMPTY": {
+            return init
+        }
+        case "ADD_WATER": {
+            return {...state, water: state.water + 1}
+        }
+    }
+}
+
+// Step by step state building
+let state = init
+state = reducer(state, {type: "ADD_WATER"})
+state = reducer(state, {type: "EMPTY"})
+state = reducer(state, {type: "ADD_WATER"})
+state = reducer(state, {type: "ADD_WATER"})
+
+console.log(state) // {water: 2}
+
+// Using Array#reduce and an array of actions
 const actions = [
     {type: "ADD_WATER"},
     {type: "EMPTY"},
@@ -32,19 +53,7 @@ const actions = [
     {type: "ADD_WATER"},
 ]
 
-function reducer(state, action) {
-    switch(action.type) {
-        "EMPTY": {
-            return init
-        },
-        "ADD_WATER": {
-            return {...state, water: state.water + 1}
-        }
-    }
-}
-
-const state = actions.reduce(reducer, init)
-
+state = actions.reduce(reducer, init)
 console.log(state) // {water: 2}
 {% endhighlight %}
 
@@ -112,15 +121,23 @@ reducer action state =
         AddWater ->
             { state | water = state.water + 1 }
 
-update : List Action -> State -> State
-update actions state =
-    List.foldl reducer state actions
-
 main =
-    text <| toString (update actions init) -- {water: 2}
+    div []
+        [ -- Step by step state building, renders { water = 2 }
+          init
+            |> reducer AddWater
+            |> reducer Empty
+            |> reducer AddWater
+            |> reducer AddWater
+            |> toString
+            |> text
+
+        -- Using List.foldl, renders { water = 2 }
+        , text <| toString <| List.foldl reducer init actions
+        ]
 {% endhighlight %}
 
-We quickly drafted this [on Ellie](https://ellie-app.com/kL3dJS7Gta1/2). It's not graphically impressive, but it works.
+We quickly drafted this [on Ellie](https://ellie-app.com/kL3dJS7Gta1/4). It's not graphically impressive, but it works.
 
 That was it, it was more obvious how to map things my coworker already knew to something new to him, while in fact it was actually exactly the same thing, expressed slightly differently from a syntax perspective.
 
