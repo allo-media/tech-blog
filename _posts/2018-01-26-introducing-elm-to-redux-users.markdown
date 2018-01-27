@@ -51,7 +51,7 @@ So I could use the Ferris wheel metaphor again:
 
 - `state` represents the state of the wheel basket (and the quatity of water in it)
 - `init` is the initial state of the wheel basket (it contains no water yet)
-- `actions` are the list of wheel full rotations where the basket reaches the ground again, with the operation to proceed (here, filling the basket with water from the lake)
+- `actions` are the list of operations to proceed each time the basket reaches the ground again (here, filling the basket with water from the lake)
 
 For the records, yes my coworker was still very oddly looking at me.
 
@@ -109,9 +109,9 @@ We also expanded that the [Elm Architecture] was basically just a projection of 
 
 The funny thing being, Redux design itself was initially inspired by Elm!
 
-In conclusion, here are three tips when facing something difficult to understand:
+In conclusion, here are quick takeaways when facing something difficult to understand:
 
-- start with finding a metaphor, even a silly one; that helps summarizing the problem and ensure you get the big picture of it;
+- start with finding a metaphor, even a silly one; that helps summarizing the problem, expressing your goal and ensure you get the big picture of it;
 - slice the problem down to the smallest understandable chunks you can, then move to the next larger one when you're done;
 - always try to map what you're trying to learn to things you've already learned; past experiences are good tools for that.
 
