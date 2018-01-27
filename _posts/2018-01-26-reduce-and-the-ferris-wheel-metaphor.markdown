@@ -27,6 +27,7 @@ const init = {water: 0}
 
 const actions = [
     {type: "ADD_WATER"},
+    {type: "EMPTY"},
     {type: "ADD_WATER"},
     {type: "ADD_WATER"},
 ]
@@ -44,7 +45,7 @@ function reducer(state, action) {
 
 const state = actions.reduce(reducer, init)
 
-console.log(state) // {water: 3}
+console.log(state) // {water: 2}
 {% endhighlight %}
 
 He was like "oh yeah, I know that". Good!
@@ -53,7 +54,7 @@ So I could use the Ferris wheel metaphor again:
 
 - `state` represents the state of the wheel basket (and the quatity of water in it)
 - `init` is the initial state of the wheel basket (it contains no water yet)
-- `actions` are the list of operations to proceed each time the basket reaches the ground again (here, filling the basket with water from the lake)
+- `actions` are the list of operations to proceed each time the basket reaches the ground again (here, filling the basket with water from the lake, sometimes emptying the basket)
 
 For the records, yes my coworker was still very oddly looking at me.
 
@@ -84,7 +85,7 @@ init =
 
 actions : List Action
 actions =
-    [ AddWater, AddWater, AddWater ]
+    [ AddWater, Empty, AddWater, AddWater ]
 
 reducer : Action -> State -> State
 reducer action state =
@@ -97,13 +98,13 @@ reducer action state =
 
 update : List Action -> State -> State
 update actions state =
-    List.foldr reducer state actions
+    List.foldl reducer state actions
 
 main =
-    text <| toString (update actions init) -- {water: 3}
+    text <| toString (update actions init) -- {water: 2}
 {% endhighlight %}
 
-We quickly drafted this [on Ellie](https://ellie-app.com/kL3dJS7Gta1/1). It's not graphically impressive, but it works.
+We quickly drafted this [on Ellie](https://ellie-app.com/kL3dJS7Gta1/2). It's not graphically impressive, but it works.
 
 That was it, it was more obvious how to map things my coworker already knew to something new to him, while in fact it was actually exactly the same thing, expressed slightly differently from a syntax perspective.
 
