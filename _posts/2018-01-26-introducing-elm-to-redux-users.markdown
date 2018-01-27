@@ -9,6 +9,11 @@ I recently had to introduce some [Elm] concepts to a coworker who had some exper
 
 The coworker was struggling to understand the whole concept, so I tried to use a metaphor; I came with the idea of a [Ferris wheel] next to a lake, with someone in one of its basket holding a bucket, filling the basket with water from the lake everytime the basket was back to the ground.
 
+<a href="https://www.flickr.com/photos/45909111@N00/3812448452/in/photolist-6NTPpE-6NTN6S-8VeQqf-6NTMNw-fmHhYZ-fmHg7k-atTbFs-8VeK2S-atQvRT-6NTKw1-aUDvNP-7dfSYz-2XhKZV-fmXsCG-fmXscE-4sTcSG-8VeBij-fmHhsP-wMJMfg-wuBR7h-wuKc1H-wuBTjf-vQdnbN-wMeCvV-wMJKda-NoBSUY-NvJoFw-MAWVsx-NoBSPC-NoBSxL-NvJoKE-NoBSJY-NvJoFb-NoBSFw-NvJoBJ-MAWP4F-NvJqem-MAWvqe-NvJoHW-MAWv1M-NvJoMd-MAWvcP-vQmVTV-NyVKgD-wuKeKk-wuKdhF-wuBQ57-8VePww-8VbGbk-8Vbz14/" title="Gwydion M. Williams - View of Wuxi from Lake Tai">
+    <img src="https://farm3.staticflickr.com/2509/3812448452_c6ecd0424f_z.jpg"
+    width="640" height="463" alt="Gwydion M. Williams - View of Wuxi from Lake Tai">
+</a>
+
 Yeah, I know.
 
 So as he was starring at me like I was a crazy person, and as I knew he did use React and Redux in the past, I told him it was like the [*reducer functions*](https://redux.js.org/docs/basics/Reducers.html) he probably used already.
