@@ -9,7 +9,7 @@ This is a short anecddote about how I approached teaching things to someone else
 
 I recently had to introduce some [Elm] concepts to a coworker who had some experience with [React] and [Redux]. One of these concepts was [List.foldl], a reduction function which exists in many languages, specifically as [Array#reduce] in JavaScript.
 
-The coworker was struggling to understand the whole concept, so I tried to use a metaphor; I came with the idea of a [Ferris wheel] next to a lake, with someone in one of its basket holding a bucket, filling the basket with water from the lake everytime the basket was back to the ground.
+The coworker was struggling to understand the whole concept, so I tried to use a metaphor; I came with the idea of a [Ferris wheel] next to a lake, with someone in one of its basket holding a bucket, filling the basket with water from the lake everytime the basket is back to the ground.
 
 <a href="https://www.flickr.com/photos/45909111@N00/3812448452/in/photolist-6NTPpE-6NTN6S-8VeQqf-6NTMNw-fmHhYZ-fmHg7k-atTbFs-8VeK2S-atQvRT-6NTKw1-aUDvNP-7dfSYz-2XhKZV-fmXsCG-fmXscE-4sTcSG-8VeBij-fmHhsP-wMJMfg-wuBR7h-wuKc1H-wuBTjf-vQdnbN-wMeCvV-wMJKda-NoBSUY-NvJoFw-MAWVsx-NoBSPC-NoBSxL-NvJoKE-NoBSJY-NvJoFb-NoBSFw-NvJoBJ-MAWP4F-NvJqem-MAWvqe-NvJoHW-MAWv1M-NvJoMd-MAWvcP-vQmVTV-NyVKgD-wuKeKk-wuKdhF-wuBQ57-8VePww-8VbGbk-8Vbz14/" title="Gwydion M. Williams - View of Wuxi from Lake Tai">
     <img src="https://farm3.staticflickr.com/2509/3812448452_c6ecd0424f_z.jpg"
@@ -141,9 +141,9 @@ We quickly drafted this [on Ellie](https://ellie-app.com/kL3dJS7Gta1/4). It's no
 
 That was it, it was more obvious how to map things my coworker already knew to something new to him, while in fact it was actually exactly the same thing, expressed slightly differently from a syntax perspective.
 
-We also expanded that the [Elm Architecture] was basically just a projection of our own `update` function (and so, of the `foldl` one), `Action` being usually named *Msg* and `State` *Model*.
+We also expanded that the [Elm Architecture] and the traditional `update` function was basically a projection of `foldl`, `Action` being usually named *Msg* and `State` *Model*.
 
-The funny thing being, Redux design itself was initially inspired by Elm!
+The funny thing being, Redux design itself was initially inspired by the Elm Architecture!
 
 In conclusion, here are quick takeaways when facing something difficult to understand:
 
