@@ -20,7 +20,7 @@ Yeah, I know.
 
 So as he was starring at me like I was a crazy person, and as I knew he did use React and Redux in the past, I told him it was like the [*reducer functions*](https://redux.js.org/docs/basics/Reducers.html) he probably used already.
 
-We started with a silly reimplementation of redux' reducers in plain js:
+We started writing a standard Redux reducer in plain js:
 
 {% highlight javascript %}
 const init = {water: 0}
