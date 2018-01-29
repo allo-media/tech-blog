@@ -4,15 +4,14 @@ title: About
 permalink: /about/
 ---
 
-This is the base Jekyll theme. You can find out more info about customizing your Jekyll theme, as well as basic Jekyll usage documentation at [jekyllrb.com](https://jekyllrb.com/)
-
-You can find the source code for Minima at GitHub:
-[jekyll][jekyll-organization] /
-[minima](https://github.com/jekyll/minima)
-
-You can find the source code for Jekyll at GitHub:
-[jekyll][jekyll-organization] /
-[jekyll](https://github.com/jekyll/jekyll)
 
 
-[jekyll-organization]: https://github.com/jekyll
+Created in 2011,[ Allo-Media] is specialized in connecting prospects and businesses, with about twenty specialized directories such as Allo-Médecins.fr or Allo-Réparateurs.fr.
+
+Following 2 years of Research & Development, the company is launching its performance-based solution combining visibility on the web and phone putting through, in order to generate qualified leads for local professionals.
+
+Thanks to its ongoing work to continually improve its technology, the company is now offering its intelligent call-tracking solution, combining voice recognition, in-depth analysis of conversations and semantic intelligence by business sector.
+
+Allo-Media is a French innovative technological company providing businesses with connections.
+
+[Allo-Media]: https://www.allo-media.net/
