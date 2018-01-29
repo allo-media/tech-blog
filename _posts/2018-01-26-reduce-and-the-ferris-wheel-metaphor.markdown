@@ -35,7 +35,11 @@ function reducer(state, action) {
         }
     }
 }
+{% endhighlight %}
 
+He was like "oh yeah, I know that". Good! We could use that function iteratively:
+
+{% highlight javascript %}
 // Step by step state building
 let state = init
 state = reducer(state, {type: "ADD_WATER"})
@@ -44,7 +48,11 @@ state = reducer(state, {type: "ADD_WATER"})
 state = reducer(state, {type: "ADD_WATER"})
 
 console.log(state) // {water: 2}
+{% endhighlight %}
 
+Or using `Array#reduce`:
+
+{% highlight javascript %}
 // Using Array#reduce and an array of actions
 const actions = [
     {type: "ADD_WATER"},
@@ -53,11 +61,9 @@ const actions = [
     {type: "ADD_WATER"},
 ]
 
-state = actions.reduce(reducer, init)
+const state = actions.reduce(reducer, init)
 console.log(state) // {water: 2}
 {% endhighlight %}
-
-He was like "oh yeah, I know that". Good!
 
 So I could use the Ferris wheel metaphor again:
 
