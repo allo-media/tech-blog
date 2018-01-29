@@ -129,11 +129,11 @@ main =
             |> reducer Empty
             |> reducer AddWater
             |> reducer AddWater
-            |> toString
-            |> text
+            |> toString >> text
 
         -- Using List.foldl, renders { water = 2 }
-        , text <| toString <| List.foldl reducer init actions
+        , List.foldl reducer init actions
+            |> toString >> text
         ]
 {% endhighlight %}
 
