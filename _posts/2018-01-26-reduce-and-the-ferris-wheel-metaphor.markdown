@@ -23,8 +23,6 @@ So as he was starring at me like I was a crazy person, and as I knew he did use 
 We started writing a standard Redux reducer in plain js:
 
 {% highlight javascript %}
-const init = {water: 0}
-
 function reducer(state, action) {
     switch(action.type) {
         case "EMPTY": {
@@ -41,6 +39,7 @@ He was like "oh yeah, I know that". Good! We could use that function iteratively
 
 {% highlight javascript %}
 // Step by step state building
+const init = {water: 0}
 let state = init
 state = reducer(state, {type: "ADD_WATER"})
 state = reducer(state, {type: "EMPTY"})
@@ -61,6 +60,7 @@ const actions = [
     {type: "ADD_WATER"},
 ]
 
+const init = {water: 0}
 const state = actions.reduce(reducer, init)
 console.log(state) // {water: 2}
 {% endhighlight %}
