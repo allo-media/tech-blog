@@ -4,9 +4,11 @@ title: About
 permalink: /about/
 ---
 
+This is the technical blog of [Allo-Media], where we share our experiences and discoveries with code and the technologies we use.
 
+### Allo-Media
 
-Created in 2011,[ Allo-Media] is specialized in connecting prospects and businesses, with about twenty specialized directories such as Allo-Médecins.fr or Allo-Réparateurs.fr.
+Created in 2011, Allo-Media is specialized in connecting prospects and businesses, with about twenty specialized directories such as Allo-Médecins.fr or Allo-Réparateurs.fr.
 
 Following 2 years of Research & Development, the company is launching its performance-based solution combining visibility on the web and phone putting through, in order to generate qualified leads for local professionals.
 
