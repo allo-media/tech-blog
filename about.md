@@ -8,7 +8,9 @@ This is the technical blog of [Allo-Media], where we share our experiences and d
 
 This blog is powered by [Jekyll] and hosted on [Github].
 
-### Allo-Media
+<div style="text-align:center;margin: 2em 0">
+  <img style="width: 400px" src="https://www.allo-media.net/assets/img/vitrine/logo.png">
+</div>
 
 Created in 2011, Allo-Media is specialized in connecting prospects and businesses, with about twenty specialized directories such as Allo-Médecins.fr or Allo-Réparateurs.fr.
 
