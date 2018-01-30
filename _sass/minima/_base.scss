@@ -115,7 +115,8 @@ a {
 
   &:hover {
     color: $text-color;
-    text-decoration: underline;
+    // text-decoration: underline;
+    border-bottom: 1px solid #d0d0d0;
   }
 
   .social-media-list &:hover {
@@ -148,24 +149,29 @@ blockquote {
  */
 pre,
 code {
-  @include relative-font-size(0.8);
-  border: 1px solid $grey-color-light;
+  font-size: 14px;
   border-radius: 3px;
-  background-color: #eef;
+  background-color: #f3f3f3;
+  font-weight: bold;
 }
 
 code {
+  border: 1px solid #dedcdc;
   padding: 1px 5px;
+  color: #505050;
 }
 
 pre {
   padding: 8px 12px;
   overflow-x: auto;
+  background-color: #3a3646;
 
   > code {
     border: 0;
     padding-right: 0;
     padding-left: 0;
+    background: none;
+    color: rgba(255, 255, 255, 0.7);
   }
 }
 

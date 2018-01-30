@@ -20,6 +20,10 @@
   padding-bottom: 10px;
   text-decoration: none !important;
 
+  &:hover {
+    border: 0;
+  }
+
   > span {
     border-left: 1px solid #fff;
     padding-left: 10px;
@@ -209,7 +213,7 @@
 }
 
 .post-link {
-  display: block;
+  // display: block;
   @include relative-font-size(1.5);
 }
 
