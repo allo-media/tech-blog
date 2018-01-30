@@ -5,7 +5,7 @@ This is where we write about things we learn.
 ## Local Jekyll setup
 
 ```
-$ sudo apt install ruby ruby-dev
+$ sudo apt install nodejs ruby ruby-dev
 $ bundle install --path vendor/bundle
 $ npm install
 ```
