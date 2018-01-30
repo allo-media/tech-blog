@@ -23,3 +23,5 @@ The blog is served at [http://127.0.0.1:4000/](http://127.0.0.1:4000/).
 ```
 $ npm run publish
 ```
+
+The blog is published at [http://tech.allo-media.net/](http://tech.allo-media.net/).
