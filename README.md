@@ -18,6 +18,9 @@ $ npm start
 
 The blog is served at [http://127.0.0.1:4000/](http://127.0.0.1:4000/).
 
+> Note: the first time you load this URL, the styles might be broken; in such a
+> situation, simply save an html or scss file from the sources.
+
 ## Publish to github pages
 
 ```
