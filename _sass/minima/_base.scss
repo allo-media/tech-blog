@@ -34,6 +34,7 @@ body {
   -o-font-feature-settings: "kern" 1;
   font-feature-settings: "kern" 1;
   font-kerning: normal;
+  font-weight: 300;
 }
 
 /**
@@ -121,10 +122,6 @@ a {
 
   .social-media-list &:hover {
     text-decoration: none;
-
-    .username {
-      text-decoration: underline;
-    }
   }
 }
 
@@ -153,6 +150,7 @@ code {
   border-radius: 3px;
   background-color: #f3f3f3;
   font-weight: bold;
+  font-family: consolas, monaco, monospace;
 }
 
 code {
