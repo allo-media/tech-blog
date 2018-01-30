@@ -3,6 +3,7 @@ layout: post
 title:  "Reduce and the Ferris wheel metaphor"
 date:   2018-01-26 17:53:00 +0100
 categories: learning elm
+tags: elm react
 ---
 
 This is a short anecddote about how I approached teaching things to someone else.
