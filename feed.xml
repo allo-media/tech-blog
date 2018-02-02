@@ -1,4 +1,177 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.2">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2018-01-30T17:44:34+01:00</updated><id>/</id><title type="html">Allo-Media Technical Blog</title><subtitle>Random things we're discovering &amp; learning at Allo-Media.</subtitle><entry><title type="html">Reduce and the Ferris wheel metaphor</title><link href="/learning/elm/2018/01/26/reduce-and-the-ferris-wheel-metaphor.html" rel="alternate" type="text/html" title="Reduce and the Ferris wheel metaphor" /><published>2018-01-26T17:53:00+01:00</published><updated>2018-01-26T17:53:00+01:00</updated><id>/learning/elm/2018/01/26/reduce-and-the-ferris-wheel-metaphor</id><content type="html" xml:base="/learning/elm/2018/01/26/reduce-and-the-ferris-wheel-metaphor.html">&lt;p&gt;This is a short anecddote about how I approached teaching things to someone else.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.2">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2018-02-02T14:56:57+01:00</updated><id>/</id><title type="html">Allo-Media Technical Blog</title><subtitle>Random things we're discovering &amp; learning at Allo-Media.</subtitle><entry><title type="html">Simple disk encryption tutorial with archlinux</title><link href="/archlinux/2018/02/01/simple-disk-encryption-tutorial-with-archlinux.html" rel="alternate" type="text/html" title="Simple disk encryption tutorial with archlinux" /><published>2018-02-01T08:00:00+01:00</published><updated>2018-02-01T08:00:00+01:00</updated><id>/archlinux/2018/02/01/simple-disk-encryption-tutorial-with-archlinux</id><content type="html" xml:base="/archlinux/2018/02/01/simple-disk-encryption-tutorial-with-archlinux.html">&lt;p&gt;We all love &lt;a href=&quot;https://www.archlinux.org/&quot;&gt;archlinux&lt;/a&gt;, or if we don’t, we’re using Fedora or Debian, and trolling is (almost) out of the scope of this article.&lt;/p&gt;
+
+&lt;p&gt;But let’s be honest, even if the &lt;a href=&quot;http://wiki.archlinux.org/&quot;&gt;wiki&lt;/a&gt; is great, it can be intimidating sometimes. That’s what happened to me yesterday. Here at &lt;a href=&quot;http://www.allo-media.net&quot;&gt;AlloMedia&lt;/a&gt;, for security reasons, we’re encrypting every laptop disk by default. As I’m using archlinux, I went to the wiki to follow how to “just” encrypt my disk. And well, &lt;a href=&quot;https://wiki.archlinux.org/index.php/Disk_encryption&quot;&gt;the page&lt;/a&gt; is a little bit overcrowded, at the very least.&lt;/p&gt;
+
+&lt;p&gt;You have first to read about 10 pages of documentation, to learn that you now have to choose between 6 methods (&lt;em&gt;Loop-AES, dm-crypt +/- LUKS, Truecrypt, eCryptfs, EncFS&lt;/em&gt;) and read every *#! page to understand which one you may want to choose. I’ve choosen for you.&lt;/p&gt;
+
+&lt;h2 id=&quot;lvm-on-luks&quot;&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)&quot;&gt;Lvm&lt;/a&gt; on &lt;a href=&quot;https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup&quot;&gt;Luks&lt;/a&gt;&lt;/h2&gt;
+
+&lt;p&gt;This is shipped with the kernel and seems to be the “default” on other distributions. It totally fits my needs: encrypt the whole system, swap included, and decrypt the system on boot using a passphrase.&lt;/p&gt;
+
+&lt;p&gt;If that’s what you want to do too, follow the white rabbit, Neo.&lt;/p&gt;
+
+&lt;h2 id=&quot;following-the-rabbit&quot;&gt;Following the rabbit&lt;/h2&gt;
+
+&lt;p&gt;We will assume that you can erase your disk and start with a fresh install, if it’s not the case, this article may not be for you. For the sake of this article, we will use &lt;code class=&quot;highlighter-rouge&quot;&gt;/dev/nvme0n1&lt;/code&gt; as the main disk of the laptop. You may have something different like &lt;code class=&quot;highlighter-rouge&quot;&gt;/dev/sda&lt;/code&gt;, that’s fine, just replace &lt;code class=&quot;highlighter-rouge&quot;&gt;/dev/nvme0n1&lt;/code&gt; by &lt;code class=&quot;highlighter-rouge&quot;&gt;/dev/sda&lt;/code&gt; in the rest of the article.&lt;/p&gt;
+
+&lt;p&gt;First, follow the &lt;a href=&quot;https://wiki.archlinux.org/index.php/Installation_guide&quot;&gt;Archlinux installation guide&lt;/a&gt; to the point just before &lt;strong&gt;Format the partitions&lt;/strong&gt;, where they are telling you to modify the partition tables using &lt;strong&gt;fdisk&lt;/strong&gt; or &lt;strong&gt;parted&lt;/strong&gt;. Here, you will need to erase all your partitions and create what’s needed for the encryption.&lt;/p&gt;
+
+&lt;h3 id=&quot;clean-and-safely-erase-your-disk&quot;&gt;Clean and safely erase your disk&lt;/h3&gt;
+
+&lt;p&gt;First, use &lt;code class=&quot;highlighter-rouge&quot;&gt;fdisk&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;gdisk&lt;/code&gt; (if you’re using UEFI) to wipe out what’s on your disk, i.e. removing all existing partitions (of course, this will delete all the data on your disk…).&lt;/p&gt;
+
+&lt;p&gt;For example, for &lt;code class=&quot;highlighter-rouge&quot;&gt;gdisk&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gdisk /dev/nvme0n1
+
+GPT fdisk &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;gdisk&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; version 1.0.3
+
+Partition table scan:
+    MBR: protective
+    BSD: not present
+    APM: not present
+    GPT: present
+
+Found valid GPT with protective MBR&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; using GPT.
+
+Command &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;? &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;help&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;:
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Use &lt;code class=&quot;highlighter-rouge&quot;&gt;p&lt;/code&gt; to print your partition schema, and &lt;code class=&quot;highlighter-rouge&quot;&gt;d&lt;/code&gt; to delete partitions. Once it’s done, use &lt;code class=&quot;highlighter-rouge&quot;&gt;w&lt;/code&gt; to write your changes to the disk (that is to say, &lt;strong&gt;again&lt;/strong&gt;, deleting all the data on your disk) and quit &lt;code class=&quot;highlighter-rouge&quot;&gt;gdisk&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Every page on the archlinux wiki says you should first be sure that no previous data will still be readable on your disk (if you have a new computer with nothing on it, this doesn’t apply to you).&lt;/p&gt;
+
+&lt;p&gt;So we will put random stuff on our disk to be sure to overwrite everything that may still be on it. You can read the &lt;a href=&quot;https://wiki.archlinux.org/index.php/Securely_wipe_disk#Random_data&quot;&gt;wiki page&lt;/a&gt; or just run the following command:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;dd if=/dev/urandom &amp;gt; /dev/nvme0n1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;partitionning&quot;&gt;Partitionning&lt;/h3&gt;
+
+&lt;p&gt;We now have a clean disk, let’s create what’s needed for our encrypted system, that is to say 2 partitions: a partition for &lt;code class=&quot;highlighter-rouge&quot;&gt;/boot&lt;/code&gt; (that will not be encrypted) and another one for our encrypted volumes (where we will later put &lt;code class=&quot;highlighter-rouge&quot;&gt;/&lt;/code&gt; and our &lt;code class=&quot;highlighter-rouge&quot;&gt;swap&lt;/code&gt;).&lt;/p&gt;
+
+&lt;p&gt;Here is what we want to have (output of my &lt;code class=&quot;highlighter-rouge&quot;&gt;gdisk&lt;/code&gt; with the &lt;code class=&quot;highlighter-rouge&quot;&gt;p&lt;/code&gt; command):&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Number  Start (sector)    End (sector)  Size       Code  Name
+   1            2048         1050623   512.0 MiB   EF00  EFI System
+   2         1050624      1000215182   476.4 GiB   8E00  Linux LVM
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;First, create the partition where &lt;code class=&quot;highlighter-rouge&quot;&gt;/boot&lt;/code&gt; will be mounted of type &lt;code class=&quot;highlighter-rouge&quot;&gt;8300&lt;/code&gt; (512Mo is a good size) following the &lt;a href=&quot;https://wiki.archlinux.org/index.php/EFI_System_Partition#Create_the_partition&quot;&gt;archlinux wiki&lt;/a&gt;. I’m assuming you’re using a system compatible with UEFI, if it’s not the case, you may want to document yourself a little bit more using the wiki. Format the partition using &lt;em&gt;FAT32&lt;/em&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;mkfs.fat -F32 /dev/nvme0n1p1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Create the other partition of code &lt;code class=&quot;highlighter-rouge&quot;&gt;8E00&lt;/code&gt; using the remaining space.&lt;/p&gt;
+
+&lt;p&gt;You should now have only 2 partitions, one for &lt;code class=&quot;highlighter-rouge&quot;&gt;/boot&lt;/code&gt; that will not be encrypted, and another one that you will first encrypt, and then put your volumes on it (&lt;code class=&quot;highlighter-rouge&quot;&gt;/&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;swap&lt;/code&gt;). In my case, the first partition that will be used for &lt;code class=&quot;highlighter-rouge&quot;&gt;/boot&lt;/code&gt; is named &lt;code class=&quot;highlighter-rouge&quot;&gt;/dev/nvme0n1p1&lt;/code&gt;, and the other one &lt;code class=&quot;highlighter-rouge&quot;&gt;/dev/nvme0n1p2&lt;/code&gt;. You may have something like &lt;code class=&quot;highlighter-rouge&quot;&gt;/dev/sda1&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;/dev/sda2&lt;/code&gt; if your partition naming scheme is not the same than mine.&lt;/p&gt;
+
+&lt;p&gt;You can then follow the (LVM on LUKS section)[https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#LVM_on_LUKS] section.&lt;/p&gt;
+
+&lt;p&gt;I don’t like having separate partitions for &lt;code class=&quot;highlighter-rouge&quot;&gt;/&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;/home&lt;/code&gt;. Every time I’ve done that, I always regretted the amount of space I allocated for each. So now, I’m only creating one &lt;code class=&quot;highlighter-rouge&quot;&gt;/&lt;/code&gt; partition with everything inside.&lt;/p&gt;
+
+&lt;p&gt;In short, below are the commands you should be running for your encrypted volumes (I’m creating a 8Go swap partition).&lt;/p&gt;
+
+&lt;p&gt;Crypt the partition and open it with your key:&lt;/p&gt;
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;cryptsetup luksFormat &lt;span class=&quot;nt&quot;&gt;--type&lt;/span&gt; luks2 /dev/nvme0n1p2
+cryptsetup open /dev/nvme0n1p2 cryptolvm
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Create the LVM volumes on it (swap and root):&lt;/p&gt;
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;pvcreate /dev/mapper/cryptolvm
+vgcreate MyVol /dev/mapper/cryptolvm
+lvcreate &lt;span class=&quot;nt&quot;&gt;-L&lt;/span&gt; 8G MyVol &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; swap
+lvcreate &lt;span class=&quot;nt&quot;&gt;-l&lt;/span&gt; 100%FREE MyVol &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; root
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Format the root and swap volumes:&lt;/p&gt;
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;mkfs.ext4 /dev/mapper/MyVol-root
+mkswap /dev/mapper/MyVol-swap
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Mount the file systems:&lt;/p&gt;
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;mount /dev/mapper/MyVol-root /mnt
+swapon /dev/mapper/MyVol-swap
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The arch wiki tells you to format you boot partition using &lt;code class=&quot;highlighter-rouge&quot;&gt;ext2&lt;/code&gt;, but for me this was a bad idea, as I want the UEFI manager of my Dell XPS 9550 to be able to boot on my &lt;code class=&quot;highlighter-rouge&quot;&gt;/boot&lt;/code&gt; partition. So, as I said above, I formatted this partition using &lt;code class=&quot;highlighter-rouge&quot;&gt;FAT32&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Mount the &lt;code class=&quot;highlighter-rouge&quot;&gt;/boot&lt;/code&gt; partition:&lt;/p&gt;
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;mkdir /mnt/boot
+mount /dev/nvme0n1p2 /mnt/boot
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;You can then follow the (&lt;code class=&quot;highlighter-rouge&quot;&gt;mkinitcpio&lt;/code&gt; part of the archlinux wiki)[https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Configuring_mkinitcpio_2].&lt;/p&gt;
+
+&lt;p&gt;Be sure to have something like that in your &lt;code class=&quot;highlighter-rouge&quot;&gt;mkinitcpio.conf&lt;/code&gt; file:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;HOOKS=(... keyboard keymap block encrypt lvm2 ... filesystems ...)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Then continue to install you system normally. Of course, be sure to configure your grub accordingly to your encrypted setup by &lt;a href=&quot;https://wiki.archlinux.org/index.php/Dm-crypt/System_configuration#Boot_loader&quot;&gt;following the wiki&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;For the record, here is my &lt;code class=&quot;highlighter-rouge&quot;&gt;/etc/defaults/grub&lt;/code&gt; file (it’s used to generate the &lt;code class=&quot;highlighter-rouge&quot;&gt;/boot/grub/grub.cfg&lt;/code&gt; file by using &lt;code class=&quot;highlighter-rouge&quot;&gt;grub-mkconfig -o /boot/grub/grub.cfg&lt;/code&gt;):&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# GRUB boot loader configuration&lt;/span&gt;
+
+&lt;span class=&quot;nv&quot;&gt;GRUB_DEFAULT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0
+&lt;span class=&quot;nv&quot;&gt;GRUB_TIMEOUT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;1
+&lt;span class=&quot;nv&quot;&gt;GRUB_DISTRIBUTOR&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Arch&quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;GRUB_CMDLINE_LINUX_DEFAULT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;resume=/dev/mapper/MyVol-swap nouveau.modeset=0 i915.preliminary_hw_support=1 acpi_backlight=vendor acpi_osi=Linux&quot;&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#GRUB_CMDLINE_LINUX_DEFAULT=&quot;&quot;&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#GRUB_CMDLINE_LINUX=&quot;&quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;GRUB_CMDLINE_LINUX&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cryptdevice=/dev/nvme0n1p2:cryptolvm&quot;&lt;/span&gt;
+
+&lt;span class=&quot;nv&quot;&gt;GRUB_ENABLE_CRYPTODISK&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;y
+
+&lt;span class=&quot;c&quot;&gt;# Preload both GPT and MBR modules so that they are not missed&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;GRUB_PRELOAD_MODULES&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;part_gpt part_msdos&quot;&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Uncomment to enable booting from LUKS encrypted devices&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#GRUB_ENABLE_CRYPTODISK=y&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Uncomment to enable Hidden Menu, and optionally hide the timeout count&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#GRUB_HIDDEN_TIMEOUT=5&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#GRUB_HIDDEN_TIMEOUT_QUIET=true&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Uncomment to use basic console&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;GRUB_TERMINAL_INPUT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;console
+
+&lt;span class=&quot;c&quot;&gt;# Uncomment to disable graphical terminal&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#GRUB_TERMINAL_OUTPUT=console&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# The resolution used on graphical terminal&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# note that you can use only modes which your graphic card supports via VBE&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# you can see them in real GRUB with the command `vbeinfo'&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;GRUB_GFXMODE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;auto
+
+&lt;span class=&quot;c&quot;&gt;# Uncomment to allow the kernel use the same resolution used by grub&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;GRUB_GFXPAYLOAD_LINUX&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;keep
+
+&lt;span class=&quot;c&quot;&gt;# Uncomment if you want GRUB to pass to the Linux kernel the old parameter&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# format &quot;root=/dev/xxx&quot; instead of &quot;root=/dev/disk/by-uuid/xxx&quot;&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#GRUB_DISABLE_LINUX_UUID=true&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Uncomment to disable generation of recovery mode menu entries&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;GRUB_DISABLE_RECOVERY&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Uncomment and set to the desired menu colors.  Used by normal and wallpaper&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# modes only.  Entries specified as foreground/background.&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#GRUB_COLOR_NORMAL=&quot;light-blue/black&quot;&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#GRUB_COLOR_HIGHLIGHT=&quot;light-cyan/blue&quot;&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Uncomment one of them for the gfx desired, a image background or a gfxtheme&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#GRUB_BACKGROUND=&quot;/path/to/wallpaper&quot;&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#GRUB_THEME=&quot;/path/to/gfxtheme&quot;&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Uncomment to get a beep at GRUB start&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#GRUB_INIT_TUNE=&quot;480 440 1&quot;&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Uncomment to make GRUB remember the last selection. This requires to&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# set 'GRUB_DEFAULT=saved' above.&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#GRUB_SAVEDEFAULT=&quot;true&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Enjoy your encrypted archlinux!&lt;/p&gt;</content><author><name></name></author><category term="archlinux" /><category term="tutorial" /><summary type="html">Here at AlloMedia, for security reasons, we're encrypting every laptop disk by default. As I'm using archlinux, I went to the wiki to follow how to &quot;just&quot; encrypt my disk. And well, the page is a little bit overcrowded, at the very least. Let's clarify that a little bit.</summary></entry><entry><title type="html">Reduce and the Ferris wheel metaphor</title><link href="/learning/elm/2018/01/26/reduce-and-the-ferris-wheel-metaphor.html" rel="alternate" type="text/html" title="Reduce and the Ferris wheel metaphor" /><published>2018-01-26T17:53:00+01:00</published><updated>2018-01-26T17:53:00+01:00</updated><id>/learning/elm/2018/01/26/reduce-and-the-ferris-wheel-metaphor</id><content type="html" xml:base="/learning/elm/2018/01/26/reduce-and-the-ferris-wheel-metaphor.html">&lt;p&gt;This is a short anecddote about how I approached teaching things to someone else.&lt;/p&gt;
 
 &lt;p&gt;I recently had to introduce some &lt;a href=&quot;http://elm-lang.org/&quot;&gt;Elm&lt;/a&gt; concepts to a coworker who had some experience with &lt;a href=&quot;https://reactjs.org/&quot;&gt;React&lt;/a&gt; and &lt;a href=&quot;https://redux.js.org/&quot;&gt;Redux&lt;/a&gt;. One of these concepts was &lt;a href=&quot;http://package.elm-lang.org/packages/elm-lang/core/latest/List#foldl&quot;&gt;List.foldl&lt;/a&gt;, a reduction function which exists in many languages, specifically as &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce&quot;&gt;Array#reduce&lt;/a&gt; in JavaScript.&lt;/p&gt;
 

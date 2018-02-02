@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Begin Jekyll SEO tag v2.3.0 -->
+<title>Simple disk encryption tutorial with archlinux | Allo-Media Technical Blog</title>
+<meta property="og:title" content="Simple disk encryption tutorial with archlinux" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Here at AlloMedia, for security reasons, we’re encrypting every laptop disk by default. As I’m using archlinux, I went to the wiki to follow how to “just” encrypt my disk. And well, the page is a little bit overcrowded, at the very least. Let’s clarify that a little bit." />
+<meta property="og:description" content="Here at AlloMedia, for security reasons, we’re encrypting every laptop disk by default. As I’m using archlinux, I went to the wiki to follow how to “just” encrypt my disk. And well, the page is a little bit overcrowded, at the very least. Let’s clarify that a little bit." />
+<link rel="canonical" href="/archlinux/2018/02/01/simple-disk-encryption-tutorial-with-archlinux.html" />
+<meta property="og:url" content="/archlinux/2018/02/01/simple-disk-encryption-tutorial-with-archlinux.html" />
+<meta property="og:site_name" content="Allo-Media Technical Blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-02-01T08:00:00+01:00" />
+<script type="application/ld+json">
+{"sameAs":null,"@type":"BlogPosting","datePublished":"2018-02-01T08:00:00+01:00","mainEntityOfPage":{"@type":"WebPage","@id":"/archlinux/2018/02/01/simple-disk-encryption-tutorial-with-archlinux.html"},"image":null,"name":null,"author":null,"publisher":null,"description":"Here at AlloMedia, for security reasons, we’re encrypting every laptop disk by default. As I’m using archlinux, I went to the wiki to follow how to “just” encrypt my disk. And well, the page is a little bit overcrowded, at the very least. Let’s clarify that a little bit.","url":"/archlinux/2018/02/01/simple-disk-encryption-tutorial-with-archlinux.html","headline":"Simple disk encryption tutorial with archlinux","dateModified":"2018-02-01T08:00:00+01:00","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+  <link rel="stylesheet" href="/assets/main.css">
+  <link href="https://fonts.googleapis.com/css?family=Lato:300,300i,400,400i,700,700i" rel="stylesheet">
+  <link rel="alternate" type="application/rss+xml" title="Allo-Media Technical Blog" href="/feed.xml">
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header" role="banner">
+
+  <div class="wrapper">
+    
+    
+    
+    <a class="site-title" rel="author" href="/"><img src="/assets/logo.svg" /><span>Tech Blog</span></a>
+
+    
+      <nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger">
+          
+            
+            
+          
+            
+            
+            <a class="page-link" href="/about/">About</a>
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+        </div>
+      </nav>
+    
+  </div>
+</header>
+
+
+    <main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Simple disk encryption tutorial with archlinux</h1>
+
+    <span>
+      
+        
+        <a href="/tag/archlinux"><code class="highligher-rouge"><nobr>archlinux</nobr></code></a>
+      
+        
+        <a href="/tag/tutorial"><code class="highligher-rouge"><nobr>tutorial</nobr></code></a>
+      
+    </span>
+
+    <p class="post-meta">
+      <time class="dt-published" datetime="2018-02-01T08:00:00+01:00" itemprop="datePublished">
+         Feb 1, 2018
+      </time>
+      </p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>We all love <a href="https://www.archlinux.org/">archlinux</a>, or if we don’t, we’re using Fedora or Debian, and trolling is (almost) out of the scope of this article.</p>
+
+<p>But let’s be honest, even if the <a href="http://wiki.archlinux.org/">wiki</a> is great, it can be intimidating sometimes. That’s what happened to me yesterday. Here at <a href="http://www.allo-media.net">AlloMedia</a>, for security reasons, we’re encrypting every laptop disk by default. As I’m using archlinux, I went to the wiki to follow how to “just” encrypt my disk. And well, <a href="https://wiki.archlinux.org/index.php/Disk_encryption">the page</a> is a little bit overcrowded, at the very least.</p>
+
+<p>You have first to read about 10 pages of documentation, to learn that you now have to choose between 6 methods (<em>Loop-AES, dm-crypt +/- LUKS, Truecrypt, eCryptfs, EncFS</em>) and read every *#! page to understand which one you may want to choose. I’ve choosen for you.</p>
+
+<h2 id="lvm-on-luks"><a href="https://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)">Lvm</a> on <a href="https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup">Luks</a></h2>
+
+<p>This is shipped with the kernel and seems to be the “default” on other distributions. It totally fits my needs: encrypt the whole system, swap included, and decrypt the system on boot using a passphrase.</p>
+
+<p>If that’s what you want to do too, follow the white rabbit, Neo.</p>
+
+<h2 id="following-the-rabbit">Following the rabbit</h2>
+
+<p>We will assume that you can erase your disk and start with a fresh install, if it’s not the case, this article may not be for you. For the sake of this article, we will use <code class="highlighter-rouge">/dev/nvme0n1</code> as the main disk of the laptop. You may have something different like <code class="highlighter-rouge">/dev/sda</code>, that’s fine, just replace <code class="highlighter-rouge">/dev/nvme0n1</code> by <code class="highlighter-rouge">/dev/sda</code> in the rest of the article.</p>
+
+<p>First, follow the <a href="https://wiki.archlinux.org/index.php/Installation_guide">Archlinux installation guide</a> to the point just before <strong>Format the partitions</strong>, where they are telling you to modify the partition tables using <strong>fdisk</strong> or <strong>parted</strong>. Here, you will need to erase all your partitions and create what’s needed for the encryption.</p>
+
+<h3 id="clean-and-safely-erase-your-disk">Clean and safely erase your disk</h3>
+
+<p>First, use <code class="highlighter-rouge">fdisk</code> or <code class="highlighter-rouge">gdisk</code> (if you’re using UEFI) to wipe out what’s on your disk, i.e. removing all existing partitions (of course, this will delete all the data on your disk…).</p>
+
+<p>For example, for <code class="highlighter-rouge">gdisk</code>:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdisk /dev/nvme0n1
+
+GPT fdisk <span class="o">(</span>gdisk<span class="o">)</span> version 1.0.3
+
+Partition table scan:
+    MBR: protective
+    BSD: not present
+    APM: not present
+    GPT: present
+
+Found valid GPT with protective MBR<span class="p">;</span> using GPT.
+
+Command <span class="o">(</span>? <span class="k">for </span><span class="nb">help</span><span class="o">)</span>:
+</code></pre></div></div>
+
+<p>Use <code class="highlighter-rouge">p</code> to print your partition schema, and <code class="highlighter-rouge">d</code> to delete partitions. Once it’s done, use <code class="highlighter-rouge">w</code> to write your changes to the disk (that is to say, <strong>again</strong>, deleting all the data on your disk) and quit <code class="highlighter-rouge">gdisk</code>.</p>
+
+<p>Every page on the archlinux wiki says you should first be sure that no previous data will still be readable on your disk (if you have a new computer with nothing on it, this doesn’t apply to you).</p>
+
+<p>So we will put random stuff on our disk to be sure to overwrite everything that may still be on it. You can read the <a href="https://wiki.archlinux.org/index.php/Securely_wipe_disk#Random_data">wiki page</a> or just run the following command:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dd if=/dev/urandom &gt; /dev/nvme0n1
+</code></pre></div></div>
+
+<h3 id="partitionning">Partitionning</h3>
+
+<p>We now have a clean disk, let’s create what’s needed for our encrypted system, that is to say 2 partitions: a partition for <code class="highlighter-rouge">/boot</code> (that will not be encrypted) and another one for our encrypted volumes (where we will later put <code class="highlighter-rouge">/</code> and our <code class="highlighter-rouge">swap</code>).</p>
+
+<p>Here is what we want to have (output of my <code class="highlighter-rouge">gdisk</code> with the <code class="highlighter-rouge">p</code> command):</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Number  Start (sector)    End (sector)  Size       Code  Name
+   1            2048         1050623   512.0 MiB   EF00  EFI System
+   2         1050624      1000215182   476.4 GiB   8E00  Linux LVM
+</code></pre></div></div>
+
+<p>First, create the partition where <code class="highlighter-rouge">/boot</code> will be mounted of type <code class="highlighter-rouge">8300</code> (512Mo is a good size) following the <a href="https://wiki.archlinux.org/index.php/EFI_System_Partition#Create_the_partition">archlinux wiki</a>. I’m assuming you’re using a system compatible with UEFI, if it’s not the case, you may want to document yourself a little bit more using the wiki. Format the partition using <em>FAT32</em>.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mkfs.fat -F32 /dev/nvme0n1p1
+</code></pre></div></div>
+
+<p>Create the other partition of code <code class="highlighter-rouge">8E00</code> using the remaining space.</p>
+
+<p>You should now have only 2 partitions, one for <code class="highlighter-rouge">/boot</code> that will not be encrypted, and another one that you will first encrypt, and then put your volumes on it (<code class="highlighter-rouge">/</code> and <code class="highlighter-rouge">swap</code>). In my case, the first partition that will be used for <code class="highlighter-rouge">/boot</code> is named <code class="highlighter-rouge">/dev/nvme0n1p1</code>, and the other one <code class="highlighter-rouge">/dev/nvme0n1p2</code>. You may have something like <code class="highlighter-rouge">/dev/sda1</code> and <code class="highlighter-rouge">/dev/sda2</code> if your partition naming scheme is not the same than mine.</p>
+
+<p>You can then follow the (LVM on LUKS section)[https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#LVM_on_LUKS] section.</p>
+
+<p>I don’t like having separate partitions for <code class="highlighter-rouge">/</code> and <code class="highlighter-rouge">/home</code>. Every time I’ve done that, I always regretted the amount of space I allocated for each. So now, I’m only creating one <code class="highlighter-rouge">/</code> partition with everything inside.</p>
+
+<p>In short, below are the commands you should be running for your encrypted volumes (I’m creating a 8Go swap partition).</p>
+
+<p>Crypt the partition and open it with your key:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cryptsetup luksFormat <span class="nt">--type</span> luks2 /dev/nvme0n1p2
+cryptsetup open /dev/nvme0n1p2 cryptolvm
+</code></pre></div></div>
+
+<p>Create the LVM volumes on it (swap and root):</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pvcreate /dev/mapper/cryptolvm
+vgcreate MyVol /dev/mapper/cryptolvm
+lvcreate <span class="nt">-L</span> 8G MyVol <span class="nt">-n</span> swap
+lvcreate <span class="nt">-l</span> 100%FREE MyVol <span class="nt">-n</span> root
+</code></pre></div></div>
+
+<p>Format the root and swap volumes:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mkfs.ext4 /dev/mapper/MyVol-root
+mkswap /dev/mapper/MyVol-swap
+</code></pre></div></div>
+
+<p>Mount the file systems:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mount /dev/mapper/MyVol-root /mnt
+swapon /dev/mapper/MyVol-swap
+</code></pre></div></div>
+
+<p>The arch wiki tells you to format you boot partition using <code class="highlighter-rouge">ext2</code>, but for me this was a bad idea, as I want the UEFI manager of my Dell XPS 9550 to be able to boot on my <code class="highlighter-rouge">/boot</code> partition. So, as I said above, I formatted this partition using <code class="highlighter-rouge">FAT32</code>.</p>
+
+<p>Mount the <code class="highlighter-rouge">/boot</code> partition:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mkdir /mnt/boot
+mount /dev/nvme0n1p2 /mnt/boot
+</code></pre></div></div>
+
+<p>You can then follow the (<code class="highlighter-rouge">mkinitcpio</code> part of the archlinux wiki)[https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Configuring_mkinitcpio_2].</p>
+
+<p>Be sure to have something like that in your <code class="highlighter-rouge">mkinitcpio.conf</code> file:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>HOOKS=(... keyboard keymap block encrypt lvm2 ... filesystems ...)
+</code></pre></div></div>
+
+<p>Then continue to install you system normally. Of course, be sure to configure your grub accordingly to your encrypted setup by <a href="https://wiki.archlinux.org/index.php/Dm-crypt/System_configuration#Boot_loader">following the wiki</a>.</p>
+
+<p>For the record, here is my <code class="highlighter-rouge">/etc/defaults/grub</code> file (it’s used to generate the <code class="highlighter-rouge">/boot/grub/grub.cfg</code> file by using <code class="highlighter-rouge">grub-mkconfig -o /boot/grub/grub.cfg</code>):</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># GRUB boot loader configuration</span>
+
+<span class="nv">GRUB_DEFAULT</span><span class="o">=</span>0
+<span class="nv">GRUB_TIMEOUT</span><span class="o">=</span>1
+<span class="nv">GRUB_DISTRIBUTOR</span><span class="o">=</span><span class="s2">"Arch"</span>
+<span class="nv">GRUB_CMDLINE_LINUX_DEFAULT</span><span class="o">=</span><span class="s2">"resume=/dev/mapper/MyVol-swap nouveau.modeset=0 i915.preliminary_hw_support=1 acpi_backlight=vendor acpi_osi=Linux"</span>
+<span class="c">#GRUB_CMDLINE_LINUX_DEFAULT=""</span>
+<span class="c">#GRUB_CMDLINE_LINUX=""</span>
+<span class="nv">GRUB_CMDLINE_LINUX</span><span class="o">=</span><span class="s2">"cryptdevice=/dev/nvme0n1p2:cryptolvm"</span>
+
+<span class="nv">GRUB_ENABLE_CRYPTODISK</span><span class="o">=</span>y
+
+<span class="c"># Preload both GPT and MBR modules so that they are not missed</span>
+<span class="nv">GRUB_PRELOAD_MODULES</span><span class="o">=</span><span class="s2">"part_gpt part_msdos"</span>
+
+<span class="c"># Uncomment to enable booting from LUKS encrypted devices</span>
+<span class="c">#GRUB_ENABLE_CRYPTODISK=y</span>
+
+<span class="c"># Uncomment to enable Hidden Menu, and optionally hide the timeout count</span>
+<span class="c">#GRUB_HIDDEN_TIMEOUT=5</span>
+<span class="c">#GRUB_HIDDEN_TIMEOUT_QUIET=true</span>
+
+<span class="c"># Uncomment to use basic console</span>
+<span class="nv">GRUB_TERMINAL_INPUT</span><span class="o">=</span>console
+
+<span class="c"># Uncomment to disable graphical terminal</span>
+<span class="c">#GRUB_TERMINAL_OUTPUT=console</span>
+
+<span class="c"># The resolution used on graphical terminal</span>
+<span class="c"># note that you can use only modes which your graphic card supports via VBE</span>
+<span class="c"># you can see them in real GRUB with the command `vbeinfo'</span>
+<span class="nv">GRUB_GFXMODE</span><span class="o">=</span>auto
+
+<span class="c"># Uncomment to allow the kernel use the same resolution used by grub</span>
+<span class="nv">GRUB_GFXPAYLOAD_LINUX</span><span class="o">=</span>keep
+
+<span class="c"># Uncomment if you want GRUB to pass to the Linux kernel the old parameter</span>
+<span class="c"># format "root=/dev/xxx" instead of "root=/dev/disk/by-uuid/xxx"</span>
+<span class="c">#GRUB_DISABLE_LINUX_UUID=true</span>
+
+<span class="c"># Uncomment to disable generation of recovery mode menu entries</span>
+<span class="nv">GRUB_DISABLE_RECOVERY</span><span class="o">=</span><span class="nb">true</span>
+
+<span class="c"># Uncomment and set to the desired menu colors.  Used by normal and wallpaper</span>
+<span class="c"># modes only.  Entries specified as foreground/background.</span>
+<span class="c">#GRUB_COLOR_NORMAL="light-blue/black"</span>
+<span class="c">#GRUB_COLOR_HIGHLIGHT="light-cyan/blue"</span>
+
+<span class="c"># Uncomment one of them for the gfx desired, a image background or a gfxtheme</span>
+<span class="c">#GRUB_BACKGROUND="/path/to/wallpaper"</span>
+<span class="c">#GRUB_THEME="/path/to/gfxtheme"</span>
+
+<span class="c"># Uncomment to get a beep at GRUB start</span>
+<span class="c">#GRUB_INIT_TUNE="480 440 1"</span>
+
+<span class="c"># Uncomment to make GRUB remember the last selection. This requires to</span>
+<span class="c"># set 'GRUB_DEFAULT=saved' above.</span>
+<span class="c">#GRUB_SAVEDEFAULT="true"</span>
+</code></pre></div></div>
+
+<p>Enjoy your encrypted archlinux!</p>
+
+  </div>
+
+  
+
+  <a class="u-url" href="/archlinux/2018/02/01/simple-disk-encryption-tutorial-with-archlinux.html" hidden></a>
+</article>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Allo-Media Technical Blog</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li>
+            
+              Allo-Media Technical Blog
+            
+            </li>
+            <li>
+              <a href="https://www.allo-media.net/about/jobs/">We're hiring!</a>
+            </li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/allo-media"><span class="icon icon--github"><svg viewBox="0 0 16 16" width="16px" height="16px"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg>
+</span><span class="username">allo-media</span></a>
+
+          </li>
+          
+
+          
+          <li>
+            <a href="https://twitter.com/allomedia"><span class="icon icon--twitter"><svg viewBox="0 0 16 16" width="16px" height="16px"><path fill="#828282" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27 c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767 c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206 C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271 c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469 c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/></svg>
+</span><span class="username">allomedia</span></a>
+
+          </li>
+          
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p>Random things we&#39;re discovering &amp; learning at Allo-Media.</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
