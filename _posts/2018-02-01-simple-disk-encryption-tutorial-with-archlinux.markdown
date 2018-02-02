@@ -9,11 +9,11 @@ tags: archlinux tutorial
 
 We all love [archlinux](https://www.archlinux.org/), or if we don't, we're using Fedora or Debian, and trolling is (almost) out of the scope of this article.
 
-But let's be honest, even if the [wiki](http://wiki.archlinux.org/) is great, it can be intimidating sometimes. That's what happened to me yesterday. Here at [AlloMedia](http://www.allo-media.net), for security reasons, we're encrypting every laptop disk by default. As I'me using archlinux, I went to the wiki to follow how to "just" encrypt my disk. And well, [the page](https://wiki.archlinux.org/index.php/Disk_encryption) is a little bit overcharged, at the very least.
+But let's be honest, even if the [wiki](http://wiki.archlinux.org/) is great, it can be intimidating sometimes. That's what happened to me yesterday. Here at [AlloMedia](http://www.allo-media.net), for security reasons, we're encrypting every laptop disk by default. As 'me using archlinux, I went to the wiki to follow how to "just" encrypt my disk. And well, [the page](https://wiki.archlinux.org/index.php/Disk_encryption) is a little bit overcrowded, at the very least.
 
 You have first to read about 10 pages of documentation, to learn that you now have to choose between 6 methods (*Loop-AES, dm-crypt +/- LUKS, Truecrypt, eCryptfs, EncFS*) and read every \*#! page to understand which one you may want to choose. I've choosen for you.
 
-## Lvm on Luks
+## [Lvm](https://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)) on [Luks](https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup)
 
 This is shipped with the kernel and seems to be the "default" on other distributions. It totally fits my needs: encrypt the whole system, swap included, and decrypt the system on boot using a passphrase.
 
@@ -27,7 +27,7 @@ First, follow the [Archlinux installation guide](https://wiki.archlinux.org/inde
 
 ### Clean and safely erase your disk
 
-First, use `fdisk` or `gdisk` (if you're using UEFI) to wipe out what's on your disk, i.e. removing all existing partitions (of cours, this will delete all the data on your disk…).
+First, use `fdisk` or `gdisk` (if you're using UEFI) to wipe out what's on your disk, i.e. removing all existing partitions (of course, this will delete all the data on your disk…).
 
 For example, for `gdisk`:
 
