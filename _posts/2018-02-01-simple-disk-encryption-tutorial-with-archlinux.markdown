@@ -30,20 +30,21 @@ First, follow the [Archlinux installation guide](https://wiki.archlinux.org/inde
 First, use `fdisk` or `gdisk` (if you're using UEFI) to wipe out what's on your disk, i.e. removing all existing partitions (of course, this will delete all the data on your disk…).
 
 For example, for `gdisk`:
+{% highlight bash %}
+gdisk /dev/nvme0n1
 
-    gdisk /dev/nvme0n1
+GPT fdisk (gdisk) version 1.0.3
 
-    GPT fdisk (gdisk) version 1.0.3
+Partition table scan:
+    MBR: protective
+    BSD: not present
+    APM: not present
+    GPT: present
 
-    Partition table scan:
-      MBR: protective
-      BSD: not present
-      APM: not present
-      GPT: present
+Found valid GPT with protective MBR; using GPT.
 
-    Found valid GPT with protective MBR; using GPT.
-
-    Command (? for help):
+Command (? for help):
+{% endhighlight %}
 
 Use `p` to print your partition schema, and `d` to delete partitions. Once it's done, use `w` to write your changes to the disk (that is to say, __again__, deleting all the data on your disk) and quit `gdisk`.
 
@@ -79,33 +80,38 @@ I don't like having separate partitions for `/` and `/home`. Every time I've don
 In short, below are the commands you should be running for your encrypted volumes (I'm creating a 8Go swap partition).
 
 Crypt the partition and open it with your key:
-
-    cryptsetup luksFormat --type luks2 /dev/nvme0n1p2
-    cryptsetup open /dev/nvme0n1p2 cryptolvm
+{% highlight bash %}
+cryptsetup luksFormat --type luks2 /dev/nvme0n1p2
+cryptsetup open /dev/nvme0n1p2 cryptolvm
+{% endhighlight %}
 
 Create the LVM volumes on it (swap and root):
-
-    pvcreate /dev/mapper/cryptolvm
-    vgcreate MyVol /dev/mapper/cryptolvm
-    lvcreate -L 8G MyVol -n swap
-    lvcreate -l 100%FREE MyVol -n root
+{% highlight bash %}
+pvcreate /dev/mapper/cryptolvm
+vgcreate MyVol /dev/mapper/cryptolvm
+lvcreate -L 8G MyVol -n swap
+lvcreate -l 100%FREE MyVol -n root
+{% endhighlight %}
 
 Format the root and swap volumes:
-
-    mkfs.ext4 /dev/mapper/MyVol-root
-    mkswap /dev/mapper/MyVol-swap
+{% highlight bash %}
+mkfs.ext4 /dev/mapper/MyVol-root
+mkswap /dev/mapper/MyVol-swap
+{% endhighlight %}
 
 Mount the file systems:
-
-    mount /dev/mapper/MyVol-root /mnt
-    swapon /dev/mapper/MyVol-swap
+{% highlight bash %}
+mount /dev/mapper/MyVol-root /mnt
+swapon /dev/mapper/MyVol-swap
+{% endhighlight %}
 
 The arch wiki tells you to format you boot partition using `ext2`, but for me this was a bad idea, as I want the UEFI manager of my Dell XPS 9550 to be able to boot on my `/boot` partition. So, as I said above, I formatted this partition using `FAT32`.
 
 Mount the `/boot` partition:
-
-    mkdir /mnt/boot
-    mount /dev/nvme0n1p2 /mnt/boot
+{% highlight bash %}
+mkdir /mnt/boot
+mount /dev/nvme0n1p2 /mnt/boot
+{% endhighlight %}
 
 You can then follow the (`mkinitcpio` part of the archlinux wiki)[https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Configuring_mkinitcpio_2].
 
@@ -117,7 +123,7 @@ Then continue to install you system normally. Of course, be sure to configure yo
 
 For the record, here is my `/etc/defaults/grub` file (it's used to generate the `/boot/grub/grub.cfg` file by using `grub-mkconfig -o /boot/grub/grub.cfg`):
 
-```
+{% highlight bash %}
 # GRUB boot loader configuration
 
 GRUB_DEFAULT=0
@@ -176,6 +182,6 @@ GRUB_DISABLE_RECOVERY=true
 # Uncomment to make GRUB remember the last selection. This requires to
 # set 'GRUB_DEFAULT=saved' above.
 #GRUB_SAVEDEFAULT="true"
-```
+{% endhighlight %}
 
 Enjoy your encrypted archlinux!
