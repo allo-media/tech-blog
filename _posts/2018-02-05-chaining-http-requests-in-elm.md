@@ -125,7 +125,7 @@ nameRequest login =
         )
 ```
 
-These two functions return `Http.Request` with the type of data they'll retrieve from the JSON body of their respective responses. `nameRequest` handles the case where a Github users don't have entered their real name yet, so the `name` filed might be a null; as with the JavaScript version, we then default to `"unspecified"`.
+These two functions return `Http.Request` with the type of data they'll retrieve from the JSON body of their respective responses. `nameRequest` handles the case where a Github users don't have entered their real name yet, so the `name` field might be a null; as with the JavaScript version, we then default to `"unspecified"`.
 
 That's good but now we need to execute and chain these two requests, the second one depending on the result of the first one, where we retrieve the `actor.login` value of the event payload.
 
@@ -170,10 +170,10 @@ We'll also need a function allowing to extract the very first element of a list,
 
 ```haskell
 pickFirst : List String -> Task String String
-pickFirst events =
-    case List.head events of
-        Just event ->
-            Task.succeed event
+pickFirst logins =
+    case List.head logins of
+        Just login ->
+            Task.succeed login
 
         Nothing ->
             Task.fail "No events."
@@ -201,9 +201,9 @@ attempt : (Result x a -> msg) -> Task x a -> Cmd msg
 
 Woah, where does this `Result` come from? And what is this `Cmd msg` thing?
 
-- `Result x a` is the [Result] from the actual execution of our HTTP request, `x` being the error and `a` the succesfully received value
-- `msg` here is a message, something we don't have defined yet; it's gonna be a value from a `Msg` type
-- `Cmd msg` is the usual way in Elm to describe side effects  
+- `Result x a` is the [Result] from the actual execution of our HTTP request, `x` being the error and `a` the succesfully received value,
+- `msg` here is a message, something we don't have defined yet; it's gonna be a value from a `Msg` type,
+- `Cmd msg` is the usual way in Elm to describe planned side effects.
 
 So let's define a `Msg` type:
 
@@ -321,9 +321,9 @@ main =
         }
 ```
 
-That's for sure much more code than with the JavaScript example, but don't forget that the Elm version renders HTML, not just logs in the console ;)
+That's for sure much more code than with the JavaScript example, but don't forget that the Elm version renders HTML, not just logs in the console. And all this with type safety!
 
-As always, an [Ellie](https://ellie-app.com/7Q9svdqRGa1/1) is publicly available so you can play around with the code.
+As always, an [Ellie](https://ellie-app.com/7Q9svdqRGa1/2) is publicly available so you can play around with the code.
 
 [Elm Architecture]: https://guide.elm-lang.org/architecture/
 [Http package]: http://package.elm-lang.org/packages/elm-lang/http/latest/Http
