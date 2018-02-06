@@ -125,13 +125,13 @@ nameRequest login =
         )
 ```
 
-These two functions return `Http.Request` with the type of data they'll retrieve from the JSON body of their respective responses. `nameRequest` handles the case where a Github users don't have entered their real name yet, so the `name` field might be a null; as with the JavaScript version, we then default to `"unspecified"`.
+These two functions return `Http.Request` with the type of data they'll retrieve from the JSON body of their respective responses. `nameRequest` handles the case where Github users don't have entered their full name yet, so the `name` field might be a `null`; as with the JavaScript version, we then default to `"unspecified"`.
 
 That's good but now we need to execute and chain these two requests, the second one depending on the result of the first one, where we retrieve the `actor.login` value of the event payload.
 
 Elm is a pure language, meaning you can't have side effects in your functions (an HTTP request is a huge side effect). So your functions must return *something* that represents a given side effect, then another function must handle the result when a response is received.
 
-In Elm, you're gonna use a [Task] to define and perform such asynchronous side effects, and tasks may `succeed` or `fail` (think `Promise.resolve` and `Promise.reject`). The [Http] package provides `Http.toTask` to map a request to a `Task`. Let's use that here:
+In Elm, you're gonna use a [Task] to define and perform such asynchronous side effects, and tasks may succeed or fail (like Promises do in JavaScript). The [Http] package provides `Http.toTask` to map a request to a `Task`. Let's use that here:
 
 ```haskell
 fetchEvents : Task Http.Error (List String)
@@ -164,9 +164,9 @@ fetchName login =
     toHttpTask (nameRequest login)
 ```
 
-`toHttpTask` is a common helper turning an `Http.Request` into a `Task`, transforming the `Http.Error` complex type into a serialized, purely textual version of it.
+`toHttpTask` is a common helper turning an `Http.Request` into a `Task`, transforming the `Http.Error` complex type into a serialized, purely textual version of it: a `String`.
 
-We'll also need a function allowing to extract the very first element of a list, if any. Such a function is builtin the `List` core module as `List.head`. And make this function a `Task` too, as that will ease chaining things alltogether and allow us to expose an error message when the list is empty:
+We'll also need a function allowing to extract the very first element of a list, if any, as we did in JavaScript using `events[0]`. Such a function is builtin the `List` core module as `List.head`. And let's make this function a `Task` too, as that will ease chaining things alltogether and allow us to expose an error message when the list is empty:
 
 ```haskell
 pickFirst : List String -> Task String String
@@ -179,13 +179,15 @@ pickFirst logins =
             Task.fail "No events."
 ```
 
-So in order to chain all the pieces we have so far, we obviously need glue. And this glue is `Task.andThen`. Its signature is:
+Note the use of `Task.succeed` and `Task.fail`, which are approximately the Elm equivalents of `Promise.resolve` and `Promise.reject`.
+
+So in order to chain all the pieces we have so far, we obviously need *glue*. And this glue is the `Task.andThen` function. Its signature is:
 
 ```haskell
 andThen : (a -> Task x b) -> Task x a -> Task x b
 ```
 
-The first argument, which is a function, will have to accept the result of a previous succesful task (the second argument), and return another task exposing a next value. The whole thing is a new Task exposing that new value. That means we can chain things this way, which is quite fancy:  
+The first argument, the `(a -> Task x b)` function, will have to accept the raw result of a previous succesful task (the second argument), and return another task exposing another value. The whole thing is a new `Task` exposing that new value. That means we can finally chain our tasks this fancy way:  
 
 ```haskell
 fetchEvents
@@ -193,7 +195,7 @@ fetchEvents
     |> Task.andThen fetchName
 ```
 
-Neat. But wait. How are we going to execute this macro-task? Here comes `Task.attempt`, which signature is:
+Neat. But wait. How are we going to execute this macro-task? Here comes the `Task.attempt` function, which signature is:
 
 ```haskell
 attempt : (Result x a -> msg) -> Task x a -> Cmd msg
@@ -203,7 +205,7 @@ Woah, where does this `Result` come from? And what is this `Cmd msg` thing?
 
 - `Result x a` is the [Result] from the actual execution of our HTTP request, `x` being the error and `a` the succesfully received value,
 - `msg` here is a message, something we don't have defined yet; it's gonna be a value from a `Msg` type,
-- `Cmd msg` is the usual way in Elm to describe planned side effects.
+- `Cmd msg` is the way in Elm to [schedule execution of side effects](https://www.elm-tutorial.org/en/03-subs-cmds/02-commands.html).
 
 So let's define a `Msg` type:
 
@@ -212,7 +214,7 @@ type Msg
     = Name (Result String String)
 ```
 
-`Name` conforms to the `(Result x a -> msg)` type, so we can use it directly with `Task.attempt`:
+Don't forget types are functions, and `Name` conforms to the `(Result x a -> msg)` type. So we can use it with `Task.attempt`:
 
 ```haskell
 fetchEvents
@@ -309,7 +311,7 @@ view model =
                 ]
           else
             text ""
-        , p [] [ text <| Maybe.withDefault "" model.name ]
+        , p [] [ text <| Maybe.withDefault "Fetching..." model.name ]
         ]
 
 main =
@@ -326,6 +328,6 @@ That's for sure much more code than with the JavaScript example, but don't forge
 As always, an [Ellie](https://ellie-app.com/7Q9svdqRGa1/2) is publicly available so you can play around with the code.
 
 [Elm Architecture]: https://guide.elm-lang.org/architecture/
-[Http package]: http://package.elm-lang.org/packages/elm-lang/http/latest/Http
+[Http]: http://package.elm-lang.org/packages/elm-lang/http/latest/Http
 [Result]: http://package.elm-lang.org/packages/elm-lang/core/latest/Result
 [Task]: http://package.elm-lang.org/packages/elm-lang/core/latest/Task
