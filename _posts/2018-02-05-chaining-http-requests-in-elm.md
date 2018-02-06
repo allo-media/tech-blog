@@ -28,7 +28,7 @@ The first request uses the `https://api.github.com/events` endpoint, and the JSO
 
 I'm purposely omitting a lot of other properties from the records here, for brevity.
 
-The second request we need to do is on the `https://api.github.com/users/{login}` endpoint, and its payload looks like this:
+The second request we need to do is on the `https://api.github.com/users/{login}` endpoint, and its body looks like this:
 
 ```json
 {
@@ -38,7 +38,7 @@ The second request we need to do is on the `https://api.github.com/users/{login}
 }
 ```
 
-Again, I'm just displaying a few fields from the actual JSON payload here.
+Again, I'm just displaying a few fields from the actual JSON body here.
 
 So we basically want:
 
@@ -127,7 +127,7 @@ nameRequest login =
 
 These two functions return `Http.Request` with the type of data they'll retrieve from the JSON body of their respective responses. `nameRequest` handles the case where Github users don't have entered their full name yet, so the `name` field might be a `null`; as with the JavaScript version, we then default to `"unspecified"`.
 
-That's good but now we need to execute and chain these two requests, the second one depending on the result of the first one, where we retrieve the `actor.login` value of the event payload.
+That's good but now we need to execute and chain these two requests, the second one depending on the result of the first one, where we retrieve the `actor.login` value of the event object.
 
 Elm is a pure language, meaning you can't have side effects in your functions (an HTTP request is a huge side effect). So your functions must return *something* that represents a given side effect, then another function must handle the result when a response is received.
 
