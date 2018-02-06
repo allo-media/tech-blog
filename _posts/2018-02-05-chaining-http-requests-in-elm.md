@@ -323,11 +323,20 @@ main =
         }
 ```
 
-That's for sure much more code than with the JavaScript example, but don't forget that the Elm version renders HTML, not just logs in the console. And all this with type safety!
+That's for sure much more code than with the JavaScript example, but don't forget that the Elm version renders HTML, not just logs in the console, and that the JavaScript code could be refactored to look a lot like the Elm version.
 
 As always, an [Ellie](https://ellie-app.com/7Q9svdqRGa1/2) is publicly available so you can play around with the code.
 
+If anything, the main takeaways from this post are these ones:
+
+- Learn [how to read Elm function signatures],
+- Learn how [Generic Types] work,
+- Keep trying understanding the deepest bits when facing something you don't fully understand,
+- Especially when you've just copied and pasted something from Stack Overflow that works ;)
+
 [Elm Architecture]: https://guide.elm-lang.org/architecture/
+[Generic Types]: https://guide.elm-lang.org/types/union_types.html#generic-data-structures
 [Http]: http://package.elm-lang.org/packages/elm-lang/http/latest/Http
+[how to read Elm function signatures]: https://github.com/knledg/elm-training/blob/master/training/2-primer/2.6-type-signatures.md
 [Result]: http://package.elm-lang.org/packages/elm-lang/core/latest/Result
 [Task]: http://package.elm-lang.org/packages/elm-lang/core/latest/Task
