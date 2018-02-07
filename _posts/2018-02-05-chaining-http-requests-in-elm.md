@@ -11,7 +11,7 @@ Sometimes in Elm you struggle with the most basic things.
 
 Especially when you come from a JavaScript background, where chaining HTTP requests are relatively easy thanks to Promises. Here's a real-world example leveraging the Github public API, where we fetch a list of Github events, pick the first one and query some user information from its unique identifier.
 
-The first request uses the `https://api.github.com/events` endpoint, and the JSON retrieved looks like this:
+The first request uses the `https://api.github.com/events` endpoint, and the retrieved JSON looks like this:
 
 ```json
 [
@@ -98,7 +98,7 @@ try {
 }
 ```
 
-This is already complicated code to read and understand, and it's tricky to do using Elm as well. Let's see how to achieve the same understanding exactly what we're doing (we've all blindly copied and pasted code in the past, don't deny).
+This is already complicated code to read and understand, and it's tricky to do using Elm as well. Let's see how to achieve the same, understanding exactly what we're doing (we've all blindly copied and pasted code in the past, don't deny).
 
 First, let's write the two requests we need; one for fetching the list of events, the second to obtain a given user's details from her `login`:
 
@@ -125,13 +125,13 @@ nameRequest login =
         )
 ```
 
-These two functions return `Http.Request` with the type of data they'll retrieve from the JSON body of their respective responses. `nameRequest` handles the case where Github users don't have entered their full name yet, so the `name` field might be a `null`; as with the JavaScript version, we then default to `"unspecified"`.
+These two functions return `Http.Request` with the type of data they'll retrieve and decode from the JSON body of their respective responses. `nameRequest` handles the case where Github users don't have entered their full name yet, so the `name` field might be a `null`; as with the JavaScript version, we then default to `"unspecified"`.
 
 That's good but now we need to execute and chain these two requests, the second one depending on the result of the first one, where we retrieve the `actor.login` value of the event object.
 
-Elm is a pure language, meaning you can't have side effects in your functions (an HTTP request is a huge side effect). So your functions must return *something* that represents a given side effect, then another function must handle the result when a response is received.
+Elm is a pure language, meaning you can't have side effects in your functions (a side effect is when functions alter things outside of their scope and use these things: an HTTP request is a *huge* side effect). So your functions must return *something* that represents a given side effect, instead of executing it within the function scope itself. The Elm runtime will be in charge of actually performing the side effect.
 
-In Elm, you're gonna use a [Task] to define and perform such asynchronous side effects, and tasks may succeed or fail (like Promises do in JavaScript). The [Http] package provides `Http.toTask` to map a request to a `Task`. Let's use that here:
+In Elm, you're usually gonna use a [Task] to define a given side effect. Tasks may succeed or fail (like Promises do in JavaScript). The [Http] package provides `Http.toTask` to map an HTTP request definition to something that Elm can execute: a `Task`. Let's use that here:
 
 ```haskell
 fetchEvents : Task Http.Error (List String)
@@ -181,13 +181,7 @@ pickFirst logins =
 
 Note the use of `Task.succeed` and `Task.fail`, which are approximately the Elm equivalents of `Promise.resolve` and `Promise.reject`.
 
-So in order to chain all the pieces we have so far, we obviously need *glue*. And this glue is the `Task.andThen` function. Its signature is:
-
-```haskell
-andThen : (a -> Task x b) -> Task x a -> Task x b
-```
-
-The first argument, the `(a -> Task x b)` function, will have to accept the raw result of a previous succesful task (the second argument), and return another task exposing another value. The whole thing is a new `Task` exposing that new value. That means we can finally chain our tasks this fancy way:  
+So in order to chain all the pieces we have so far, we obviously need *glue*. And this glue is the `Task.andThen` function, which can chain our tasks this fancy way:  
 
 ```haskell
 fetchEvents
@@ -195,26 +189,14 @@ fetchEvents
     |> Task.andThen fetchName
 ```
 
-Neat. But wait. How are we going to execute this macro-task? Here comes the `Task.attempt` function, which signature is:
-
-```haskell
-attempt : (Result x a -> msg) -> Task x a -> Cmd msg
-```
-
-Woah, where does this `Result` come from? And what is this `Cmd msg` thing?
-
-- `Result x a` is the [Result] from the actual execution of our HTTP request, `x` being the error and `a` the succesfully received value,
-- `msg` here is a message, something we don't have defined yet; it's gonna be a value from a `Msg` type,
-- `Cmd msg` is the way in Elm to [schedule execution of side effects](https://www.elm-tutorial.org/en/03-subs-cmds/02-commands.html).
-
-So let's define a `Msg` type:
+Neat. But wait. As we mentioned previously, Tasks are *descriptions* of side effects, not their actual execution. The `Task.attempt` function will help us doing that, provided we define a `Msg` that will be sent as a [Command]:
 
 ```haskell
 type Msg
     = Name (Result String String)
 ```
 
-Don't forget types are functions, and `Name` conforms to the `(Result x a -> msg)` type. So we can use it with `Task.attempt`:
+The `Result String String` reflects the result of the HTTP request and shares the same type definitions for both the error (a `String`) and the value (the user full name, a `String` too). Let's use this `Msg` with `Task.attempt`:
 
 ```haskell
 fetchEvents
@@ -223,7 +205,14 @@ fetchEvents
     |> Task.attempt Name
 ```
 
-But now, how are we going to run all this and do actual HTTP requests and process the responses accordingly? We need to setup the [Elm Architecture]:
+Here:
+
+- We start by fetching all the events,
+- Then if the Task succeeds, we pick the first event,
+- Then if we have one, we fetch the name of the event's user,
+- And we map the future result of this task to the `Name` message.
+
+But now, how are we going to run all this and execute the actual HTTP requests and process the responses accordingly? We need to setup the [Elm Architecture]:
 
 ```haskell
 module Main exposing (main)
@@ -334,6 +323,7 @@ If anything, the main takeaways from this post are these ones:
 - Keep trying understanding the deepest bits when facing something you don't fully understand,
 - Especially when you've just copied and pasted something from Stack Overflow that works ;)
 
+[Command]: https://www.elm-tutorial.org/en/03-subs-cmds/02-commands.html
 [Elm Architecture]: https://guide.elm-lang.org/architecture/
 [Generic Types]: https://guide.elm-lang.org/types/union_types.html#generic-data-structures
 [Http]: http://package.elm-lang.org/packages/elm-lang/http/latest/Http
