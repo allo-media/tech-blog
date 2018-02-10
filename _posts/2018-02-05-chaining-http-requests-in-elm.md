@@ -7,6 +7,8 @@ categories: learning elm
 tags: elm http
 ---
 
+*Preliminary note: in this article we'll use Elm [decoders](https://guide.elm-lang.org/interop/json.html), [tasks](http://package.elm-lang.org/packages/elm-lang/core/latest/Task), [results](https://guide.elm-lang.org/error_handling/result.html) and leverage the [Elm Architecture]. If you're not comfortable with these concepts, you may want to check their respective documentation.*
+
 Sometimes in Elm you struggle with the most basic things.
 
 Especially when you come from a JavaScript background, where chaining HTTP requests are relatively easy thanks to Promises. Here's a real-world example leveraging the Github public API, where we fetch a list of Github events, pick the first one and query some user information from its unique identifier.
@@ -109,9 +111,7 @@ import Json.Decode as Decode
 eventsRequest : Http.Request (List String)
 eventsRequest =
     Http.get "https://api.github.com/events"
-        (Decode.at [ "actor", "login" ] Decode.string
-            |> Decode.list
-        )
+    (Decode.list (Decode.at [ "actor", "login" ] Decode.string))
 
 nameRequest : String -> Http.Request String
 nameRequest login =
@@ -314,7 +314,7 @@ main =
 
 That's for sure much more code than with the JavaScript example, but don't forget that the Elm version renders HTML, not just logs in the console, and that the JavaScript code could be refactored to look a lot like the Elm version.
 
-As always, an [Ellie](https://ellie-app.com/7Q9svdqRGa1/2) is publicly available so you can play around with the code.
+As always, an [Ellie](https://ellie-app.com/7Q9svdqRGa1/3) is publicly available so you can play around with the code.
 
 If anything, the main takeaways from this post are these ones:
 
