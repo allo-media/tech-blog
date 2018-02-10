@@ -243,9 +243,7 @@ type Msg
 eventsRequest : Http.Request (List String)
 eventsRequest =
     Http.get "https://api.github.com/events"
-        (Decode.at [ "actor", "login" ] Decode.string
-            |> Decode.list
-        )
+        (Decode.list (Decode.at [ "actor", "login" ] Decode.string))
 
 nameRequest : String -> Http.Request String
 nameRequest login =
