@@ -131,7 +131,15 @@ That's good but now we need to execute and chain these two requests, the second 
 
 Elm is a pure language, meaning you can't have side effects in your functions (a side effect is when functions alter things outside of their scope and use these things: an HTTP request is a *huge* side effect). So your functions must return *something* that represents a given side effect, instead of executing it within the function scope itself. The Elm runtime will be in charge of actually performing the side effect.
 
-In Elm, you're usually gonna use a [Task] to define a given side effect. Tasks may succeed or fail (like Promises do in JavaScript). The [Http] package provides `Http.toTask` to map an HTTP request definition to something that Elm can execute: a `Task`. Let's use that here:
+In Elm, you're usually gonna use a [Task] to describe future operations. Tasks may succeed or fail (like Promises do in JavaScript), but they need to be turned into [Elm commands] to be actually executed.
+
+So basically:
+
+1. We first craft `Http.Request`s,
+2. We turn them into `Task`s we can chain,
+3. We run these sequential tasks through a command (`Cmd msg`).
+
+The [Http] package provides `Http.toTask` to map an `Http.Request` into a `Task`. Let's use that here:
 
 ```haskell
 fetchEvents : Task Http.Error (List String)
@@ -145,8 +153,7 @@ fetchName login =
 
 I created these two simple functions mostly to focus on their return types; a `Task` must define an error type and a result type. For example, `fetchEvents` being an HTTP task, it will receive an `Http.Error` when the task fails, and a list of strings when the task succeeds.
 
-But dealing granularily with HTTP errors being out of scope of this already long blog post, and in order to keep things as less convoluted as possible, I'm gonna use `Task.mapError` to turn complex HTTP error objects into strings as well:  
-
+But dealing granularily with HTTP errors being out of scope of this blog post, and in order to keep things as less convoluted as possible, I'm gonna use `Task.mapError` to turn complex HTTP errors into their string representations:  
 
 ```haskell
 toHttpTask : Http.Request a -> Task String a
@@ -164,7 +171,7 @@ fetchName login =
     toHttpTask (nameRequest login)
 ```
 
-`toHttpTask` is a common helper turning an `Http.Request` into a `Task`, transforming the `Http.Error` complex type into a serialized, purely textual version of it: a `String`.
+Here, `toHttpTask` is a helper turning an `Http.Request` into a `Task`, transforming the `Http.Error` complex type into a serialized, purely textual version of it: a `String`.
 
 We'll also need a function allowing to extract the very first element of a list, if any, as we did in JavaScript using `events[0]`. Such a function is builtin the `List` core module as `List.head`. And let's make this function a `Task` too, as that will ease chaining things alltogether and allow us to expose an error message when the list is empty:
 
@@ -179,7 +186,7 @@ pickFirst logins =
             Task.fail "No events."
 ```
 
-Note the use of `Task.succeed` and `Task.fail`, which are approximately the Elm equivalents of `Promise.resolve` and `Promise.reject`.
+Note the use of `Task.succeed` and `Task.fail`, which are approximately the Elm equivalents of `Promise.resolve` and `Promise.reject`: this is how you create tasks that succeed or fail immediately.
 
 So in order to chain all the pieces we have so far, we obviously need *glue*. And this glue is the `Task.andThen` function, which can chain our tasks this fancy way:  
 
@@ -189,14 +196,14 @@ fetchEvents
     |> Task.andThen fetchName
 ```
 
-Neat. But wait. As we mentioned previously, Tasks are *descriptions* of side effects, not their actual execution. The `Task.attempt` function will help us doing that, provided we define a `Msg` that will be sent as a [Command]:
+Neat. But wait. As we mentioned previously, Tasks are *descriptions* of side effects, not their actual execution. The `Task.attempt` function will help us doing that, provided we define a `Msg` that will be responsible of dealing with the result received after we send the task [Command]:
 
 ```haskell
 type Msg
     = Name (Result String String)
 ```
 
-The `Result String String` reflects the result of the HTTP request and shares the same type definitions for both the error (a `String`) and the value (the user full name, a `String` too). Let's use this `Msg` with `Task.attempt`:
+`Result String String` reflects the result of the HTTP request and shares the same type definitions for both the error (a `String`) and the value (the user full name, a `String` too). Let's use this `Msg` with `Task.attempt`:
 
 ```haskell
 fetchEvents
@@ -209,10 +216,12 @@ Here:
 
 - We start by fetching all the events,
 - Then if the Task succeeds, we pick the first event,
-- Then if we have one, we fetch the name of the event's user,
+- Then if we have one, we fetch the event's user full name,
 - And we map the future result of this task to the `Name` message.
 
-But now, how are we going to run all this and execute the actual HTTP requests and process the responses accordingly? We need to setup the [Elm Architecture]:
+The cool thing here is that if anything fails along the chain, the chain stops and the error will be propagated down to the `Name` handler. No need to check errors for each operation!
+
+Now, how are we going to execute the resulting command and process the result? We need to setup the [Elm Architecture] and its good old `update` function:
 
 ```haskell
 module Main exposing (main)
@@ -312,7 +321,7 @@ main =
         }
 ```
 
-That's for sure much more code than with the JavaScript example, but don't forget that the Elm version renders HTML, not just logs in the console, and that the JavaScript code could be refactored to look a lot like the Elm version.
+That's for sure more code than with the JavaScript example, but don't forget that the Elm version renders HTML, not just logs in the console, and that the JavaScript code could be refactored to look a lot like the Elm version.
 
 As always, an [Ellie](https://ellie-app.com/7Q9svdqRGa1/3) is publicly available so you can play around with the code.
 
@@ -325,6 +334,7 @@ If anything, the main takeaways from this post are these ones:
 
 [Command]: https://www.elm-tutorial.org/en/03-subs-cmds/02-commands.html
 [Elm Architecture]: https://guide.elm-lang.org/architecture/
+[Elm commands]: https://www.elm-tutorial.org/en/03-subs-cmds/02-commands.html
 [Generic Types]: https://guide.elm-lang.org/types/union_types.html#generic-data-structures
 [Http]: http://package.elm-lang.org/packages/elm-lang/http/latest/Http
 [how to read Elm function signatures]: https://github.com/knledg/elm-training/blob/master/training/2-primer/2.6-type-signatures.md
