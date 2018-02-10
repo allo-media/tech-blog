@@ -7,7 +7,7 @@ categories: learning elm
 tags: elm http
 ---
 
-*Preliminary note: in this article we'll use Elm [decoders](https://guide.elm-lang.org/interop/json.html), [tasks](http://package.elm-lang.org/packages/elm-lang/core/latest/Task), [results](https://guide.elm-lang.org/error_handling/result.html) and leverage the [Elm Architecture]. If you're not comfortable with these concepts, you may want to check their respective documentation.*
+*Preliminary note: in this article we'll use Elm [decoders](https://guide.elm-lang.org/interop/json.html), [tasks](http://ohanhi.com/tasks-in-modern-elm.html), [results](https://guide.elm-lang.org/error_handling/result.html) and leverage the [Elm Architecture]. If you're not comfortable with these concepts, you may want to check their respective documentation.*
 
 Sometimes in Elm you struggle with the most basic things.
 
