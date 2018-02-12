@@ -129,15 +129,22 @@ These two functions return `Http.Request` with the type of data they'll retrieve
 
 That's good but now we need to execute and chain these two requests, the second one depending on the result of the first one, where we retrieve the `actor.login` value of the event object.
 
-Elm is a pure language, meaning you can't have side effects in your functions (a side effect is when functions alter things outside of their scope and use these things: an HTTP request is a *huge* side effect). So your functions must return *something* that represents a given side effect, instead of executing it within the function scope itself. The Elm runtime will be in charge of actually performing the side effect.
+Elm is a pure language, meaning you can't have side effects in your functions (a side effect is when functions alter things outside of their scope and use these things: an HTTP request is a *huge* side effect). So your functions must return *something* that represents a given side effect, instead of executing it within the function scope itself. The Elm runtime will be in charge of actually performing the side effect, using a [Command].
 
-In Elm, you're usually gonna use a [Task] to describe future operations. Tasks may succeed or fail (like Promises do in JavaScript), but they need to be turned into [Elm commands] to be actually executed.
+In Elm, you're usually going to use a [Task] to describe side effects. Tasks may succeed or fail (like Promises do in JavaScript), but they need to be turned into an [Elm command] to be actually executed.
+
+To quote this [excellent post on Tasks](http://ohanhi.com/tasks-in-modern-elm.html):
+
+> I find it helpful to think of tasks as if they were shopping lists. A shopping list contains detailed instructions of what should be fetched from the grocery store, but that doesn’t mean the shopping is done. I need to use the list while at the grocery store in order to get an end result
+
+But why do we need to convert a `Task` into a command you may ask? Because a command can execute a single thing at a time, so if you need to execute multiple side effects at once, you'll need a single task that represents all these side effects.
 
 So basically:
 
 1. We first craft `Http.Request`s,
 2. We turn them into `Task`s we can chain,
-3. We run these sequential tasks through a command (`Cmd msg`).
+3. We turn the resulting `Task` into a command,
+4. This command is executed by the runtime, and we get a result
 
 The [Http] package provides `Http.toTask` to map an `Http.Request` into a `Task`. Let's use that here:
 
@@ -153,7 +160,7 @@ fetchName login =
 
 I created these two simple functions mostly to focus on their return types; a `Task` must define an error type and a result type. For example, `fetchEvents` being an HTTP task, it will receive an `Http.Error` when the task fails, and a list of strings when the task succeeds.
 
-But dealing granularily with HTTP errors being out of scope of this blog post, and in order to keep things as less convoluted as possible, I'm gonna use `Task.mapError` to turn complex HTTP errors into their string representations:  
+But dealing with HTTP errors in a granular way being out of scope of this blog post, and in order to keep things as simple and concise as possible, I'm gonna use `Task.mapError` to turn complex HTTP errors into their string representations:  
 
 ```haskell
 toHttpTask : Http.Request a -> Task String a
@@ -173,7 +180,7 @@ fetchName login =
 
 Here, `toHttpTask` is a helper turning an `Http.Request` into a `Task`, transforming the `Http.Error` complex type into a serialized, purely textual version of it: a `String`.
 
-We'll also need a function allowing to extract the very first element of a list, if any, as we did in JavaScript using `events[0]`. Such a function is builtin the `List` core module as `List.head`. And let's make this function a `Task` too, as that will ease chaining things alltogether and allow us to expose an error message when the list is empty:
+We'll also need a function allowing to extract the very first element of a list, if any, as we did in JavaScript using `events[0]`. Such a function is builtin the `List` core module as `List.head`. And let's make this function a `Task` too, as that will ease chaining everything together and allow us to expose an error message when the list is empty:
 
 ```haskell
 pickFirst : List String -> Task String String
@@ -196,7 +203,7 @@ fetchEvents
     |> Task.andThen fetchName
 ```
 
-Neat. But wait. As we mentioned previously, Tasks are *descriptions* of side effects, not their actual execution. The `Task.attempt` function will help us doing that, provided we define a `Msg` that will be responsible of dealing with the result received after we send the task [Command]:
+Neat. But wait. As we mentioned previously, Tasks are *descriptions* of side effects, not their actual execution. The `Task.attempt` function will help us doing that, by turning a `Task` into a [Command], provided we define a `Msg` that will be responsible of dealing with the received result:
 
 ```haskell
 type Msg
@@ -219,7 +226,7 @@ Here:
 - Then if we have one, we fetch the event's user full name,
 - And we map the future result of this task to the `Name` message.
 
-The cool thing here is that if anything fails along the chain, the chain stops and the error will be propagated down to the `Name` handler. No need to check errors for each operation!
+The cool thing here is that if anything fails along the chain, the chain stops and the error will be propagated down to the `Name` handler. No need to check errors for each operation! Yes, that looks a lot like how JavaScript Promises' `.catch` works.
 
 Now, how are we going to execute the resulting command and process the result? We need to setup the [Elm Architecture] and its good old `update` function:
 
@@ -319,16 +326,9 @@ main =
         }
 ```
 
-That's for sure more code than with the JavaScript example, but don't forget that the Elm version renders HTML, not just logs in the console, and that the JavaScript code could be refactored to look a lot like the Elm version.
+That's for sure more code than with the JavaScript example, but don't forget that the Elm version renders HTML, not just logs in the console, and that the JavaScript code could be refactored to look a lot like the Elm version. Also the Elm version is fully typed and *safeguarded* against unforeseen problems, which makes a huge difference when your application grows.
 
 As always, an [Ellie](https://ellie-app.com/7Q9svdqRGa1/3) is publicly available so you can play around with the code.
-
-If anything, the main takeaways from this post are these ones:
-
-- Learn [how to read Elm function signatures],
-- Learn how [Generic Types] work,
-- Keep trying understanding the deepest bits when facing something you don't fully understand,
-- Especially when you've just copied and pasted something from Stack Overflow that works ;)
 
 [Command]: https://www.elm-tutorial.org/en/03-subs-cmds/02-commands.html
 [Elm Architecture]: https://guide.elm-lang.org/architecture/
