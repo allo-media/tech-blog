@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Begin Jekyll SEO tag v2.3.0 -->
+<title>Chaining HTTP requests in Elm | Allo-Media Technical Blog</title>
+<meta property="og:title" content="Chaining HTTP requests in Elm" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Sometimes in Elm you struggle with the most basic things. Especially when you come from a JavaScript background, where chaining HTTP requests are relatively easy thanks to Promises or async/await." />
+<meta property="og:description" content="Sometimes in Elm you struggle with the most basic things. Especially when you come from a JavaScript background, where chaining HTTP requests are relatively easy thanks to Promises or async/await." />
+<link rel="canonical" href="/learning/elm/2018/02/05/chaining-http-requests-in-elm.html" />
+<meta property="og:url" content="/learning/elm/2018/02/05/chaining-http-requests-in-elm.html" />
+<meta property="og:site_name" content="Allo-Media Technical Blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-02-05T09:00:00+01:00" />
+<script type="application/ld+json">
+{"name":null,"description":"Sometimes in Elm you struggle with the most basic things. Especially when you come from a JavaScript background, where chaining HTTP requests are relatively easy thanks to Promises or async/await.","author":null,"@type":"BlogPosting","url":"/learning/elm/2018/02/05/chaining-http-requests-in-elm.html","publisher":null,"image":null,"headline":"Chaining HTTP requests in Elm","dateModified":"2018-02-05T09:00:00+01:00","datePublished":"2018-02-05T09:00:00+01:00","sameAs":null,"mainEntityOfPage":{"@type":"WebPage","@id":"/learning/elm/2018/02/05/chaining-http-requests-in-elm.html"},"@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+  <link rel="stylesheet" href="/assets/main.css">
+  <link href="https://fonts.googleapis.com/css?family=Lato:300,300i,400,400i,700,700i" rel="stylesheet">
+  <link rel="alternate" type="application/rss+xml" title="Allo-Media Technical Blog" href="/feed.xml">
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header" role="banner">
+
+  <div class="wrapper">
+    
+    
+    
+    <a class="site-title" rel="author" href="/"><img src="/assets/logo.svg" /><span>Tech Blog</span></a>
+
+    
+      <nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger">
+          
+            
+            
+          
+            
+            
+            <a class="page-link" href="/about/">About</a>
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+        </div>
+      </nav>
+    
+  </div>
+</header>
+
+
+    <main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Chaining HTTP requests in Elm</h1>
+
+    <span>
+      
+        
+        <a href="/tag/elm"><code class="highligher-rouge"><nobr>elm</nobr></code></a>
+      
+        
+        <a href="/tag/http"><code class="highligher-rouge"><nobr>http</nobr></code></a>
+      
+    </span>
+
+    <p class="post-meta">
+      <time class="dt-published" datetime="2018-02-05T09:00:00+01:00" itemprop="datePublished">
+         Feb 5, 2018
+      </time>
+      </p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p><em>Preliminary note: in this article we’ll use Elm <a href="https://guide.elm-lang.org/interop/json.html">decoders</a>, <a href="http://ohanhi.com/tasks-in-modern-elm.html">tasks</a>, <a href="https://guide.elm-lang.org/error_handling/result.html">results</a> and leverage the <a href="https://guide.elm-lang.org/architecture/">Elm Architecture</a>. If you’re not comfortable with these concepts, you may want to check their respective documentation.</em></p>
+
+<p>Sometimes in Elm you struggle with the most basic things.</p>
+
+<p>Especially when you come from a JavaScript background, where chaining HTTP requests are relatively easy thanks to Promises. Here’s a real-world example leveraging the Github public API, where we fetch a list of Github events, pick the first one and query some user information from its unique identifier.</p>
+
+<p>The first request uses the <code class="highlighter-rouge">https://api.github.com/events</code> endpoint, and the retrieved JSON looks like this:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"987654321"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ForkEvent"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"actor"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1234567</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"login"</span><span class="p">:</span><span class="w"> </span><span class="s2">"foobar"</span><span class="p">,</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+</span><span class="p">]</span><span class="w">
+</span></code></pre></div></div>
+
+<p>I’m purposely omitting a lot of other properties from the records here, for brevity.</p>
+
+<p>The second request we need to do is on the <code class="highlighter-rouge">https://api.github.com/users/{login}</code> endpoint, and its body looks like this:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1234567</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"login"</span><span class="p">:</span><span class="w"> </span><span class="s2">"foobar"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Foo Bar"</span><span class="p">,</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Again, I’m just displaying a few fields from the actual JSON body here.</p>
+
+<p>So we basically want:</p>
+
+<ul>
+  <li>from a list of events, to pick the first one if any,</li>
+  <li>then pick its <code class="highlighter-rouge">actor.login</code> property,</li>
+  <li>query the user details endpoint using this value,</li>
+  <li>extract the user real name for that account.</li>
+</ul>
+
+<p>Using JavaScript, that would look like this:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">fetch</span><span class="p">(</span><span class="s2">"https://api.github.com/events"</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">responseA</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">responseA</span><span class="p">.</span><span class="nx">json</span><span class="p">()</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">events</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">events</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">throw</span> <span class="s2">"No events."</span>
+        <span class="p">}</span>
+        <span class="kd">const</span> <span class="p">{</span> <span class="na">actor</span> <span class="p">:</span> <span class="p">{</span> <span class="nx">login</span> <span class="p">}</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">events</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nx">fetch</span><span class="p">(</span><span class="s2">`https://api.github.com/users/</span><span class="p">${</span><span class="nx">login</span><span class="p">}</span><span class="s2">`</span><span class="p">)</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">responseB</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">responseB</span><span class="p">.</span><span class="nx">json</span><span class="p">()</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">user</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">user</span><span class="p">.</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"unspecified"</span><span class="p">)</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">user</span><span class="p">.</span><span class="nx">name</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">err</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+    <span class="p">})</span>
+</code></pre></div></div>
+
+<p>It would get a little fancier using <code class="highlighter-rouge">async/await</code>:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">try</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">responseA</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">fetch</span><span class="p">(</span><span class="s2">"https://api.github.com/events"</span><span class="p">)</span>
+    <span class="kd">const</span> <span class="nx">events</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">responseA</span><span class="p">.</span><span class="nx">json</span><span class="p">()</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">events</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">throw</span> <span class="s2">"No events."</span>
+    <span class="p">}</span>
+    <span class="kd">const</span> <span class="p">{</span> <span class="na">actor</span><span class="p">:</span> <span class="p">{</span> <span class="nx">login</span> <span class="p">}</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">events</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="kd">const</span> <span class="nx">responseB</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">fetch</span><span class="p">(</span><span class="s2">`https://api.github.com/users/</span><span class="p">${</span><span class="nx">login</span><span class="p">}</span><span class="s2">`</span><span class="p">)</span>
+    <span class="kd">const</span> <span class="nx">user</span> <span class="o">=</span> <span class="kr">await</span> <span class="nx">responseB</span><span class="p">.</span><span class="nx">json</span><span class="p">()</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">user</span><span class="p">.</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"unspecified"</span><span class="p">)</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">user</span><span class="p">.</span><span class="nx">name</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This is already complicated code to read and understand, and it’s tricky to do using Elm as well. Let’s see how to achieve the same, understanding exactly what we’re doing (we’ve all blindly copied and pasted code in the past, don’t deny).</p>
+
+<p>First, let’s write the two requests we need; one for fetching the list of events, the second to obtain a given user’s details from her <code class="highlighter-rouge">login</code>:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kr">import</span> <span class="nn">Http</span>
+<span class="kr">import</span> <span class="nn">Json.Decode</span> <span class="k">as</span> <span class="n">Decode</span>
+
+<span class="n">eventsRequest</span> <span class="o">:</span> <span class="kt">Http</span><span class="o">.</span><span class="kt">Request</span> <span class="p">(</span><span class="kt">List</span> <span class="kt">String</span><span class="p">)</span>
+<span class="n">eventsRequest</span> <span class="o">=</span>
+    <span class="kt">Http</span><span class="o">.</span><span class="n">get</span> <span class="s">"https://api.github.com/events"</span>
+    <span class="p">(</span><span class="kt">Decode</span><span class="o">.</span><span class="n">list</span> <span class="p">(</span><span class="kt">Decode</span><span class="o">.</span><span class="n">at</span> <span class="p">[</span> <span class="s">"actor"</span><span class="p">,</span> <span class="s">"login"</span> <span class="p">]</span> <span class="kt">Decode</span><span class="o">.</span><span class="n">string</span><span class="p">))</span>
+
+<span class="n">nameRequest</span> <span class="o">:</span> <span class="kt">String</span> <span class="o">-&gt;</span> <span class="kt">Http</span><span class="o">.</span><span class="kt">Request</span> <span class="kt">String</span>
+<span class="n">nameRequest</span> <span class="n">login</span> <span class="o">=</span>
+    <span class="kt">Http</span><span class="o">.</span><span class="n">get</span> <span class="p">(</span><span class="s">"https://api.github.com/users/"</span> <span class="o">++</span> <span class="n">login</span><span class="p">)</span>
+        <span class="p">(</span><span class="kt">Decode</span><span class="o">.</span><span class="n">at</span> <span class="p">[</span> <span class="s">"name"</span> <span class="p">]</span>
+            <span class="p">(</span><span class="kt">Decode</span><span class="o">.</span><span class="n">oneOf</span>
+                <span class="p">[</span> <span class="kt">Decode</span><span class="o">.</span><span class="n">string</span>
+                <span class="p">,</span> <span class="kt">Decode</span><span class="o">.</span><span class="n">null</span> <span class="s">"unspecified"</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+</code></pre></div></div>
+
+<p>These two functions return <code class="highlighter-rouge">Http.Request</code> with the type of data they’ll retrieve and decode from the JSON body of their respective responses. <code class="highlighter-rouge">nameRequest</code> handles the case where Github users don’t have entered their full name yet, so the <code class="highlighter-rouge">name</code> field might be a <code class="highlighter-rouge">null</code>; as with the JavaScript version, we then default to <code class="highlighter-rouge">"unspecified"</code>.</p>
+
+<p>That’s good but now we need to execute and chain these two requests, the second one depending on the result of the first one, where we retrieve the <code class="highlighter-rouge">actor.login</code> value of the event object.</p>
+
+<p>Elm is a pure language, meaning you can’t have side effects in your functions (a side effect is when functions alter things outside of their scope and use these things: an HTTP request is a <em>huge</em> side effect). So your functions must return <em>something</em> that represents a given side effect, instead of executing it within the function scope itself. The Elm runtime will be in charge of actually performing the side effect, using a <a href="https://www.elm-tutorial.org/en/03-subs-cmds/02-commands.html">Command</a>.</p>
+
+<p>In Elm, you’re usually going to use a <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/Task">Task</a> to describe side effects. Tasks may succeed or fail (like Promises do in JavaScript), but they need to be turned into an [Elm command] to be actually executed.</p>
+
+<p>To quote this <a href="http://ohanhi.com/tasks-in-modern-elm.html">excellent post on Tasks</a>:</p>
+
+<blockquote>
+  <p>I find it helpful to think of tasks as if they were shopping lists. A shopping list contains detailed instructions of what should be fetched from the grocery store, but that doesn’t mean the shopping is done. I need to use the list while at the grocery store in order to get an end result</p>
+</blockquote>
+
+<p>But why do we need to convert a <code class="highlighter-rouge">Task</code> into a command you may ask? Because a command can execute a single thing at a time, so if you need to execute multiple side effects at once, you’ll need a single task that represents all these side effects.</p>
+
+<p>So basically:</p>
+
+<ol>
+  <li>We first craft <code class="highlighter-rouge">Http.Request</code>s,</li>
+  <li>We turn them into <code class="highlighter-rouge">Task</code>s we can chain,</li>
+  <li>We turn the resulting <code class="highlighter-rouge">Task</code> into a command,</li>
+  <li>This command is executed by the runtime, and we get a result</li>
+</ol>
+
+<p>The <a href="http://package.elm-lang.org/packages/elm-lang/http/latest/Http">Http</a> package provides <code class="highlighter-rouge">Http.toTask</code> to map an <code class="highlighter-rouge">Http.Request</code> into a <code class="highlighter-rouge">Task</code>. Let’s use that here:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fetchEvents</span> <span class="o">:</span> <span class="kt">Task</span> <span class="kt">Http</span><span class="o">.</span><span class="kt">Error</span> <span class="p">(</span><span class="kt">List</span> <span class="kt">String</span><span class="p">)</span>
+<span class="n">fetchEvents</span> <span class="o">=</span>
+    <span class="n">eventsRequest</span> <span class="o">|&gt;</span> <span class="kt">Http</span><span class="o">.</span><span class="n">toTask</span>
+
+<span class="n">fetchName</span> <span class="o">:</span> <span class="kt">String</span> <span class="o">-&gt;</span> <span class="kt">Task</span> <span class="kt">Http</span><span class="o">.</span><span class="kt">Error</span> <span class="kt">String</span>
+<span class="n">fetchName</span> <span class="n">login</span> <span class="o">=</span>
+    <span class="n">nameRequest</span> <span class="n">login</span> <span class="o">|&gt;</span> <span class="kt">Http</span><span class="o">.</span><span class="n">toTask</span>
+</code></pre></div></div>
+
+<p>I created these two simple functions mostly to focus on their return types; a <code class="highlighter-rouge">Task</code> must define an error type and a result type. For example, <code class="highlighter-rouge">fetchEvents</code> being an HTTP task, it will receive an <code class="highlighter-rouge">Http.Error</code> when the task fails, and a list of strings when the task succeeds.</p>
+
+<p>But dealing with HTTP errors in a granular way being out of scope of this blog post, and in order to keep things as simple and concise as possible, I’m gonna use <code class="highlighter-rouge">Task.mapError</code> to turn complex HTTP errors into their string representations:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">toHttpTask</span> <span class="o">:</span> <span class="kt">Http</span><span class="o">.</span><span class="kt">Request</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Task</span> <span class="kt">String</span> <span class="n">a</span>
+<span class="n">toHttpTask</span> <span class="n">request</span> <span class="o">=</span>
+    <span class="n">request</span>
+        <span class="o">|&gt;</span> <span class="kt">Http</span><span class="o">.</span><span class="n">toTask</span>
+        <span class="o">|&gt;</span> <span class="kt">Task</span><span class="o">.</span><span class="n">mapError</span> <span class="n">toString</span>
+
+<span class="n">fetchEvents</span> <span class="o">:</span> <span class="kt">Task</span> <span class="kt">String</span> <span class="p">(</span><span class="kt">List</span> <span class="kt">String</span><span class="p">)</span>
+<span class="n">fetchEvents</span> <span class="o">=</span>
+    <span class="n">toHttpTask</span> <span class="n">eventsRequest</span>
+
+<span class="n">fetchName</span> <span class="o">:</span> <span class="kt">String</span> <span class="o">-&gt;</span> <span class="kt">Task</span> <span class="kt">String</span> <span class="kt">String</span>
+<span class="n">fetchName</span> <span class="n">login</span> <span class="o">=</span>
+    <span class="n">toHttpTask</span> <span class="p">(</span><span class="n">nameRequest</span> <span class="n">login</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Here, <code class="highlighter-rouge">toHttpTask</code> is a helper turning an <code class="highlighter-rouge">Http.Request</code> into a <code class="highlighter-rouge">Task</code>, transforming the <code class="highlighter-rouge">Http.Error</code> complex type into a serialized, purely textual version of it: a <code class="highlighter-rouge">String</code>.</p>
+
+<p>We’ll also need a function allowing to extract the very first element of a list, if any, as we did in JavaScript using <code class="highlighter-rouge">events[0]</code>. Such a function is builtin the <code class="highlighter-rouge">List</code> core module as <code class="highlighter-rouge">List.head</code>. And let’s make this function a <code class="highlighter-rouge">Task</code> too, as that will ease chaining everything together and allow us to expose an error message when the list is empty:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">pickFirst</span> <span class="o">:</span> <span class="kt">List</span> <span class="kt">String</span> <span class="o">-&gt;</span> <span class="kt">Task</span> <span class="kt">String</span> <span class="kt">String</span>
+<span class="n">pickFirst</span> <span class="n">logins</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="kt">List</span><span class="o">.</span><span class="n">head</span> <span class="n">logins</span> <span class="kr">of</span>
+        <span class="kt">Just</span> <span class="n">login</span> <span class="o">-&gt;</span>
+            <span class="kt">Task</span><span class="o">.</span><span class="n">succeed</span> <span class="n">login</span>
+
+        <span class="kt">Nothing</span> <span class="o">-&gt;</span>
+            <span class="kt">Task</span><span class="o">.</span><span class="n">fail</span> <span class="s">"No events."</span>
+</code></pre></div></div>
+
+<p>Note the use of <code class="highlighter-rouge">Task.succeed</code> and <code class="highlighter-rouge">Task.fail</code>, which are approximately the Elm equivalents of <code class="highlighter-rouge">Promise.resolve</code> and <code class="highlighter-rouge">Promise.reject</code>: this is how you create tasks that succeed or fail immediately.</p>
+
+<p>So in order to chain all the pieces we have so far, we obviously need <em>glue</em>. And this glue is the <code class="highlighter-rouge">Task.andThen</code> function, which can chain our tasks this fancy way:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fetchEvents</span>
+    <span class="o">|&gt;</span> <span class="kt">Task</span><span class="o">.</span><span class="n">andThen</span> <span class="n">pickFirst</span>
+    <span class="o">|&gt;</span> <span class="kt">Task</span><span class="o">.</span><span class="n">andThen</span> <span class="n">fetchName</span>
+</code></pre></div></div>
+
+<p>Neat. But wait. As we mentioned previously, Tasks are <em>descriptions</em> of side effects, not their actual execution. The <code class="highlighter-rouge">Task.attempt</code> function will help us doing that, by turning a <code class="highlighter-rouge">Task</code> into a <a href="https://www.elm-tutorial.org/en/03-subs-cmds/02-commands.html">Command</a>, provided we define a <code class="highlighter-rouge">Msg</code> that will be responsible of dealing with the received result:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kr">type</span> <span class="kt">Msg</span>
+    <span class="o">=</span> <span class="kt">Name</span> <span class="p">(</span><span class="kt">Result</span> <span class="kt">String</span> <span class="kt">String</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">Result String String</code> reflects the result of the HTTP request and shares the same type definitions for both the error (a <code class="highlighter-rouge">String</code>) and the value (the user full name, a <code class="highlighter-rouge">String</code> too). Let’s use this <code class="highlighter-rouge">Msg</code> with <code class="highlighter-rouge">Task.attempt</code>:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fetchEvents</span>
+    <span class="o">|&gt;</span> <span class="kt">Task</span><span class="o">.</span><span class="n">andThen</span> <span class="n">pickFirst</span>
+    <span class="o">|&gt;</span> <span class="kt">Task</span><span class="o">.</span><span class="n">andThen</span> <span class="n">fetchName</span>
+    <span class="o">|&gt;</span> <span class="kt">Task</span><span class="o">.</span><span class="n">attempt</span> <span class="kt">Name</span>
+</code></pre></div></div>
+
+<p>Here:</p>
+
+<ul>
+  <li>We start by fetching all the events,</li>
+  <li>Then if the Task succeeds, we pick the first event,</li>
+  <li>Then if we have one, we fetch the event’s user full name,</li>
+  <li>And we map the future result of this task to the <code class="highlighter-rouge">Name</code> message.</li>
+</ul>
+
+<p>The cool thing here is that if anything fails along the chain, the chain stops and the error will be propagated down to the <code class="highlighter-rouge">Name</code> handler. No need to check errors for each operation! Yes, that looks a lot like how JavaScript Promises’ <code class="highlighter-rouge">.catch</code> works.</p>
+
+<p>Now, how are we going to execute the resulting command and process the result? We need to setup the <a href="https://guide.elm-lang.org/architecture/">Elm Architecture</a> and its good old <code class="highlighter-rouge">update</code> function:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kr">module</span> <span class="nn">Main</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">main</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Http</span>
+<span class="kr">import</span> <span class="nn">Json.Decode</span> <span class="k">as</span> <span class="n">Decode</span>
+<span class="kr">import</span> <span class="nn">Task</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">Task</span><span class="p">)</span>
+
+
+<span class="kr">type</span> <span class="n">alias</span> <span class="kt">Model</span> <span class="o">=</span>
+    <span class="p">{</span> <span class="n">name</span> <span class="o">:</span> <span class="kt">Maybe</span> <span class="kt">String</span>
+    <span class="p">,</span> <span class="ne">error</span> <span class="o">:</span> <span class="kt">String</span>
+    <span class="p">}</span>
+
+<span class="kr">type</span> <span class="kt">Msg</span>
+    <span class="o">=</span> <span class="kt">Name</span> <span class="p">(</span><span class="kt">Result</span> <span class="kt">String</span> <span class="kt">String</span><span class="p">)</span>
+
+<span class="n">eventsRequest</span> <span class="o">:</span> <span class="kt">Http</span><span class="o">.</span><span class="kt">Request</span> <span class="p">(</span><span class="kt">List</span> <span class="kt">String</span><span class="p">)</span>
+<span class="n">eventsRequest</span> <span class="o">=</span>
+    <span class="kt">Http</span><span class="o">.</span><span class="n">get</span> <span class="s">"https://api.github.com/events"</span>
+        <span class="p">(</span><span class="kt">Decode</span><span class="o">.</span><span class="n">list</span> <span class="p">(</span><span class="kt">Decode</span><span class="o">.</span><span class="n">at</span> <span class="p">[</span> <span class="s">"actor"</span><span class="p">,</span> <span class="s">"login"</span> <span class="p">]</span> <span class="kt">Decode</span><span class="o">.</span><span class="n">string</span><span class="p">))</span>
+
+<span class="n">nameRequest</span> <span class="o">:</span> <span class="kt">String</span> <span class="o">-&gt;</span> <span class="kt">Http</span><span class="o">.</span><span class="kt">Request</span> <span class="kt">String</span>
+<span class="n">nameRequest</span> <span class="n">login</span> <span class="o">=</span>
+    <span class="kt">Http</span><span class="o">.</span><span class="n">get</span> <span class="p">(</span><span class="s">"https://api.github.com/users/"</span> <span class="o">++</span> <span class="n">login</span><span class="p">)</span>
+        <span class="p">(</span><span class="kt">Decode</span><span class="o">.</span><span class="n">at</span> <span class="p">[</span> <span class="s">"name"</span> <span class="p">]</span>
+            <span class="p">(</span><span class="kt">Decode</span><span class="o">.</span><span class="n">oneOf</span>
+                <span class="p">[</span> <span class="kt">Decode</span><span class="o">.</span><span class="n">string</span>
+                <span class="p">,</span> <span class="kt">Decode</span><span class="o">.</span><span class="n">null</span> <span class="s">"unspecified"</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+<span class="n">toHttpTask</span> <span class="o">:</span> <span class="kt">Http</span><span class="o">.</span><span class="kt">Request</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Task</span> <span class="kt">String</span> <span class="n">a</span>
+<span class="n">toHttpTask</span> <span class="n">request</span> <span class="o">=</span>
+    <span class="n">request</span>
+        <span class="o">|&gt;</span> <span class="kt">Http</span><span class="o">.</span><span class="n">toTask</span>
+        <span class="o">|&gt;</span> <span class="kt">Task</span><span class="o">.</span><span class="n">mapError</span> <span class="n">toString</span>
+
+<span class="n">fetchEvents</span> <span class="o">:</span> <span class="kt">Task</span> <span class="kt">String</span> <span class="p">(</span><span class="kt">List</span> <span class="kt">String</span><span class="p">)</span>
+<span class="n">fetchEvents</span> <span class="o">=</span>
+    <span class="n">toHttpTask</span> <span class="n">eventsRequest</span>
+
+<span class="n">fetchName</span> <span class="o">:</span> <span class="kt">String</span> <span class="o">-&gt;</span> <span class="kt">Task</span> <span class="kt">String</span> <span class="kt">String</span>
+<span class="n">fetchName</span> <span class="n">login</span> <span class="o">=</span>
+    <span class="n">toHttpTask</span> <span class="p">(</span><span class="n">nameRequest</span> <span class="n">login</span><span class="p">)</span>
+
+<span class="n">pickFirst</span> <span class="o">:</span> <span class="kt">List</span> <span class="kt">String</span> <span class="o">-&gt;</span> <span class="kt">Task</span> <span class="kt">String</span> <span class="kt">String</span>
+<span class="n">pickFirst</span> <span class="n">events</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="kt">List</span><span class="o">.</span><span class="n">head</span> <span class="n">events</span> <span class="kr">of</span>
+        <span class="kt">Just</span> <span class="n">event</span> <span class="o">-&gt;</span>
+            <span class="kt">Task</span><span class="o">.</span><span class="n">succeed</span> <span class="n">event</span>
+
+        <span class="kt">Nothing</span> <span class="o">-&gt;</span>
+            <span class="kt">Task</span><span class="o">.</span><span class="n">fail</span> <span class="s">"No events."</span>
+
+<span class="n">init</span> <span class="o">:</span> <span class="p">(</span> <span class="kt">Model</span><span class="p">,</span> <span class="kt">Cmd</span> <span class="kt">Msg</span> <span class="p">)</span>
+<span class="n">init</span> <span class="o">=</span>
+    <span class="p">{</span> <span class="n">name</span> <span class="o">=</span> <span class="kt">Nothing</span><span class="p">,</span> <span class="ne">error</span> <span class="o">=</span> <span class="s">""</span> <span class="p">}</span>
+        <span class="o">!</span> <span class="p">[</span> <span class="n">fetchEvents</span>
+                <span class="o">|&gt;</span> <span class="kt">Task</span><span class="o">.</span><span class="n">andThen</span> <span class="n">pickFirst</span>
+                <span class="o">|&gt;</span> <span class="kt">Task</span><span class="o">.</span><span class="n">andThen</span> <span class="n">fetchName</span>
+                <span class="o">|&gt;</span> <span class="kt">Task</span><span class="o">.</span><span class="n">attempt</span> <span class="kt">Name</span>
+          <span class="p">]</span>
+
+<span class="n">update</span> <span class="o">:</span> <span class="kt">Msg</span> <span class="o">-&gt;</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="p">(</span> <span class="kt">Model</span><span class="p">,</span> <span class="kt">Cmd</span> <span class="kt">Msg</span> <span class="p">)</span>
+<span class="n">update</span> <span class="n">msg</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">msg</span> <span class="kr">of</span>
+        <span class="kt">Name</span> <span class="p">(</span><span class="kt">Ok</span> <span class="n">name</span><span class="p">)</span> <span class="o">-&gt;</span>
+            <span class="p">{</span> <span class="n">model</span> <span class="o">|</span> <span class="n">name</span> <span class="o">=</span> <span class="kt">Just</span> <span class="n">name</span> <span class="p">}</span> <span class="o">!</span> <span class="kt">[]</span>
+
+        <span class="kt">Name</span> <span class="p">(</span><span class="kt">Err</span> <span class="ne">error</span><span class="p">)</span> <span class="o">-&gt;</span>
+            <span class="p">{</span> <span class="n">model</span> <span class="o">|</span> <span class="ne">error</span> <span class="o">=</span> <span class="ne">error</span> <span class="p">}</span> <span class="o">!</span> <span class="kt">[]</span>
+
+<span class="n">view</span> <span class="o">:</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="kt">Msg</span>
+<span class="n">view</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="kt">[]</span>
+        <span class="p">[</span> <span class="kr">if</span> <span class="n">model</span><span class="o">.</span><span class="ne">error</span> <span class="o">/=</span> <span class="s">""</span> <span class="kr">then</span>
+            <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">h4</span> <span class="kt">[]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"Error encountered"</span> <span class="p">]</span>
+                <span class="p">,</span> <span class="n">pre</span> <span class="kt">[]</span> <span class="p">[</span> <span class="n">text</span> <span class="n">model</span><span class="o">.</span><span class="ne">error</span> <span class="p">]</span>
+                <span class="p">]</span>
+          <span class="kr">else</span>
+            <span class="n">text</span> <span class="s">""</span>
+        <span class="p">,</span> <span class="n">p</span> <span class="kt">[]</span> <span class="p">[</span> <span class="n">text</span> <span class="o">&lt;|</span> <span class="kt">Maybe</span><span class="o">.</span><span class="n">withDefault</span> <span class="s">"Fetching..."</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="p">]</span>
+        <span class="p">]</span>
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="kt">Html</span><span class="o">.</span><span class="n">program</span>
+        <span class="p">{</span> <span class="n">init</span> <span class="o">=</span> <span class="n">init</span>
+        <span class="p">,</span> <span class="n">update</span> <span class="o">=</span> <span class="n">update</span>
+        <span class="p">,</span> <span class="n">subscriptions</span> <span class="o">=</span> <span class="n">always</span> <span class="kt">Sub</span><span class="o">.</span><span class="n">none</span>
+        <span class="p">,</span> <span class="n">view</span> <span class="o">=</span> <span class="n">view</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<p>That’s for sure more code than with the JavaScript example, but don’t forget that the Elm version renders HTML, not just logs in the console, and that the JavaScript code could be refactored to look a lot like the Elm version. Also the Elm version is fully typed and <em>safeguarded</em> against unforeseen problems, which makes a huge difference when your application grows.</p>
+
+<p>As always, an <a href="https://ellie-app.com/7Q9svdqRGa1/3">Ellie</a> is publicly available so you can play around with the code.</p>
+
+
+  </div>
+
+  
+
+  <a class="u-url" href="/learning/elm/2018/02/05/chaining-http-requests-in-elm.html" hidden></a>
+</article>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Allo-Media Technical Blog</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li>
+            
+              Allo-Media Technical Blog
+            
+            </li>
+            <li>
+              <a href="https://www.allo-media.net/about/jobs/">We're hiring!</a>
+            </li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/allo-media"><span class="icon icon--github"><svg viewBox="0 0 16 16" width="16px" height="16px"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg>
+</span><span class="username">allo-media</span></a>
+
+          </li>
+          
+
+          
+          <li>
+            <a href="https://twitter.com/allomedia"><span class="icon icon--twitter"><svg viewBox="0 0 16 16" width="16px" height="16px"><path fill="#828282" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27 c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767 c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206 C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271 c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469 c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/></svg>
+</span><span class="username">allomedia</span></a>
+
+          </li>
+          
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p>Random things we&#39;re discovering &amp; learning at Allo-Media.</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
