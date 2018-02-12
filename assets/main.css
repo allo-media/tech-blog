@@ -160,15 +160,15 @@ table td { border: 1px solid #e8e8e8; }
 .highlight .kr { color: #5dd283; font-weight: bold; }
 .highlight .kt { color: #67b6ff; font-weight: bold; }
 .highlight .m { color: #099; }
-.highlight .s { color: #d14; }
+.highlight .s { color: #ffbd75; }
 .highlight .na { color: #049a9a; }
 .highlight .nb { color: #0086b3; }
 .highlight .nc { color: #458; font-weight: bold; }
 .highlight .no { color: #008080; }
 .highlight .ni { color: #800080; }
-.highlight .ne { color: #900; font-weight: bold; }
+.highlight .ne { color: #ff6262; font-weight: bold; }
 .highlight .nf { color: #900; font-weight: bold; }
-.highlight .nn { color: #555; }
+.highlight .nn { color: #8ad0e2; }
 .highlight .nt { color: #7798fd; }
 .highlight .nv { color: #089a9a; }
 .highlight .nx { color: #ffffff; }
@@ -181,7 +181,7 @@ table td { border: 1px solid #e8e8e8; }
 .highlight .sb { color: #d14; }
 .highlight .sc { color: #d14; }
 .highlight .sd { color: #d14; }
-.highlight .s2 { color: #d65172; }
+.highlight .s2 { color: #ffbd75; }
 .highlight .se { color: #d14; }
 .highlight .sh { color: #d14; }
 .highlight .si { color: #d14; }
