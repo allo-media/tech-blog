@@ -35,10 +35,21 @@ I decided to rewrite an internal project that was already done in Python using G
 
 First feeling: learning __Go__ was so easy. In __one evening__, I was able to compile a Proof Of Concept of the projet with basic features developped and some tests written. This was a very pleasant feeling, I was adding features very fast. The compiler messages were helpful, everything was fine.
 
-And at some point, the tragedy started. I needed to add a field to some struct, so I just modified the struct and was ready to analyze the compiler message to know where this struct was used in order to add the field where it was needed.
+And at some point, the tragedy started. I needed to add a field to some struct, so I just modified the struct and was ready to analyze the compiler messages to know where this struct was used in order to add the field where it was needed.
 
 I compiled the code and … no error message. Everything went fine. But?! I just added a field to a struct, the compiler should say that my code is not good anymore because I'm not initializing the value where it should be!
 
-The problem is that, not providing a value to a struct is not a problem in __Go__. This value will default to it's [zero value](https://tour.golang.org/basics/12) and everything will compile. This was the __show stopper__ for me. I realized that I __couldn't rely on the compiler__ to get my back when I was doing mistakes. At this point, I was wondering: why should I bother learning __Go__ if the compiler can't do much better than [Python and mypy](http://mypy-lang.org/)? Of course concurrency is much better with __Go__, but the downside of not being able to rely on the compiler was to much for me.
+The problem is that, not providing a value to a struct is not a problem in __Go__. This value will default to it's [zero value](https://tour.golang.org/basics/12) and everything will compile. This was the __show stopper__ for me. I realized that I __couldn't rely on the compiler__ to get my back when I was doing mistakes. At this point, I was wondering: why should I bother learning __Go__ if the compiler can't do much better than [Python and mypy](http://mypy-lang.org/)? Of course concurrency is much better with __Go__, but the downside of not being able to rely on the compiler was too much for me.
 
 ## Into Rust.
+
+So __Go__ was not an option anymore as I realized that what I really needed was a __useful compiler__: a compiler that __should not rely on the fact that I know how to code__ (as it has been proven to be false a lot of times). That's why I took a look at __Rust__.
+
+Rust was not my first choice because it advertises itself as a "system language", and I'm more of a web developer than a system one. But it had some very strong selling points:
+
+- No `null` values but an `Option` type (checked at compile time)
+- No `exceptions` but a `Result` type (checked at compile time)
+- Variables are __immutable__ by default
+- Built for concurrency in mind
+
+I decided to rewrite the __same program__ than the one I did in Python and Go. The onboarding was a lot harder than with Go. As I did with Go, I tried to go cold turkey, but it was too hard: I needed some new concepts specific to Rust like __ownership__ or __lifetimes__ to understand the code I was seeing on StackOverflow. So I had no choice but to read the [Rust Book](https://doc.rust-lang.org/book/second-edition/), and it took me two weeks before I could start writing some code (remember that with Go it took me one evening…).
