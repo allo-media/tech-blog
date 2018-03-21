@@ -23,9 +23,9 @@ Ok so, at this point I knew what I wanted from the "perfect" backend language:
 4. __No mutability__
 5. Handle __concurrency__ nicely
 
-I see you coming: "hey, this is [Haskell]"! Yeah indeed, but for whatever reason, I've never managed do get anything done with [Haskell] (and I've been trying a lot). This is maybe only me, but from an outsider, the Haskell mindset seems elitist, the documentation and praticle examples are lacking and it's hardly accessible to a beginner. [Learn you a Haskell for great good](http://learnyouahaskell.com/) is awesome but very long to read and too abstract for me (you don't build anything _for real_ during the book).
+I see you coming: "hey, this is [Haskell]"! Yeah indeed, but for whatever reason, I've never managed to get anything done with [Haskell] (and I've been trying a lot). This is maybe only me, but from an outsider, the Haskell mindset seems elitist, the documentation and practical examples are lacking and it's hardly accessible to a beginner. [Learn you a Haskell for great good](http://learnyouahaskell.com/) is awesome but very long to read and too abstract for me (you don't build anything _for real_ during the book).
 
-"Hey, and what about [Scala]?!". What do you mean by Scala? The better Java? The functional programming language with [Scalaz]? The Object Orienting Programming Functional language that may or may not fail at runtime with a `java.lang.NullPointerException` and needs a 4GB JVM running? I tried it some years ago and definitively, this is a no go for me.
+"Hey, and what about [Scala]?!". What do you mean by Scala? The better Java? The functional programming language with [Scalaz]? The Object Orienting Programming Functional language that may or may not fail at runtime with a `java.lang.NullPointerException` and needs a 4GB JVM running? I tried it some years ago and definitely, this is a no go for me.
 
 After discussing with a few people, I decided to give __Go__ a try. It has a __compiler__, __no exceptions__, no `null` (but __null values__) and can handle __concurrency__ nicely.
 
@@ -41,7 +41,7 @@ I compiled the code and … no error message. Everything went fine. But?! I just
 
 The problem is that, not providing a value to a struct is not a problem in __Go__. This value will default to it's [zero value](https://tour.golang.org/basics/12) and everything will compile. This was the __show stopper__ for me. I realized that I __couldn't rely on the compiler__ to get my back when I was doing mistakes. At this point, I was wondering: why should I bother learning __Go__ if the compiler can't do much better than [Python and mypy](http://mypy-lang.org/)? Of course concurrency is much better with __Go__, but the downside of not being able to rely on the compiler was too much for me.
 
-Don't get me wrong, I still think that __Go__ is a __progress compared to Python__ and I would definitively recommand people to learn Go instead of Python if they had to pick one of the two. But for my personal case, as someone who already knows Python and wanted something a lot safer, Go didn't bring enough to the table in that particular domain.
+Don't get me wrong, I still think that __Go__ is a __progress compared to Python__ and I would definitively recommand people to learn Go instead of Python if they had to pick one of the two. But for my personal case, as someone who already knew Python and wanted something a lot safer, Go didn't bring enough to the table in that specific domain.
 
 ## Into Rust.
 
@@ -53,7 +53,7 @@ Rust was not my first choice because it advertises itself as a "system language"
 - No `exceptions` but a `Result` type (checked at compile time)
 - Variables are __immutable__ by default
 - Designed with concurrency in mind
-- Memory safety
+- Memory safe by design, no garbage collector
 
 I decided to rewrite the __same program__ than the one I did in Python and Go. The __onboarding was a lot harder__ than with Go. As I did with Go, I tried to go head first, but it was too hard: I needed some new concepts specific to Rust like __ownership__ or __lifetimes__ to understand the code I was seeing on StackOverflow. So I had no choice but to read the [Rust Book](https://doc.rust-lang.org/book/second-edition/), and it took me two weeks before I could start writing some code (remember that with Go it took me one evening).
 
