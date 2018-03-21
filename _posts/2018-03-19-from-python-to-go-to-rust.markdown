@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "From python to Go to Rust"
+title:  "From python to Go to Rust: an opinionated journey"
 excerpt: "When looking for a new backend language, I naturally went from Python to Go (isn't what Google did?). But after only one week of Go, I realised that Go was only half of a progress. Better suited to my needs than Python, but too far away from the developer experience I enjoy when doing Elm in the frontend. So I gave Rust a try."
 date:   2018-02-05 09:00:00 +0100
 categories: point of view
@@ -52,4 +52,29 @@ Rust was not my first choice because it advertises itself as a "system language"
 - Variables are __immutable__ by default
 - Built for concurrency in mind
 
-I decided to rewrite the __same program__ than the one I did in Python and Go. The onboarding was a lot harder than with Go. As I did with Go, I tried to go cold turkey, but it was too hard: I needed some new concepts specific to Rust like __ownership__ or __lifetimes__ to understand the code I was seeing on StackOverflow. So I had no choice but to read the [Rust Book](https://doc.rust-lang.org/book/second-edition/), and it took me two weeks before I could start writing some code (remember that with Go it took me one evening…).
+I decided to rewrite the __same program__ than the one I did in Python and Go. The __onboarding was a lot harder__ than with Go. As I did with Go, I tried to go cold turkey, but it was too hard: I needed some new concepts specific to Rust like __ownership__ or __lifetimes__ to understand the code I was seeing on StackOverflow. So I had no choice but to read the [Rust Book](https://doc.rust-lang.org/book/second-edition/), and it took me two weeks before I could start writing some code (remember that with Go it took me one evening).
+
+But after this first learing curve, I was enjoying writing Rust code, and I'm still enjoying it. With Rust, I don't have to trust myself, I just have to __follow the compiler__ and if I do so, it will most likely work if it compiles. In the end, this is the main feeling I was looking for when searching for a new backend language.
+
+
+Of course, Rust has a lot of __downsides__:
+- It's pretty __new and things are moving very fast__. I'm using [futures-rs](https://docs.rs/futures/) and [hyper.rs](https://hyper.rs/)in my project, and finding good documentation was really hard (kudos to the people on irc.mozilla.org#rust-beginners for the help).
+- It forces you to think of things you're not used to when coming from more _high-level_ languages: __how is the memory managed__ (with lifetimes and ownership).
+- Compiler messages are not always straightforward to understand, especially when you're combining futures and their strange long types.
+- Mutability is allowed, so you can get smashed with side effects
+
+But, it also has a lot of __upsides__:
+- It's __amazingly fast__
+- __Tooling is good__ (cargo, rustfmt)
+- Most of the things are __checked at compile time__
+- You can potentially __do whatever you want with it__, from a browser, to a web app, to some game.
+- Community is welcoming
+- It's backed by Mozilla
+
+## Wrapping up
+
+__Go__ is cool but doesn't provide enough type safety for me. I would rather stick with __Python__ and it's ecosystem than risking re-writing stuff in __Go__ if I don't need concurrency. If I need concurrency I would still not use __Go__ as its lack of type safety will surely hit my back at some point.
+
+__Rust__ is the perfect candidate for cuncurrency, even if the `futures-rs` crate (this is how we call libs in Rust) is still early stage. I suspect that __Rust__ could become the defacto standard for a lot of backend needs in the future.
+
+At the very least, I think that I've found __my__ perfect backend stack: __Python__ for machine learning and admin scripts, __Rust__ for everything else.
