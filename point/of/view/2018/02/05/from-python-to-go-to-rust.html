@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Begin Jekyll SEO tag v2.3.0 -->
+<title>From python to Go to Rust: an opinionated journey | Allo-Media Technical Blog</title>
+<meta property="og:title" content="From python to Go to Rust: an opinionated journey" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="When looking for a new backend language, I naturally went from Python to the new cool kid: Go. But after only one week of Go, I realised that Go was only half of a progress. Better suited to my needs than Python, but too far away from the developer experience I was enjoying when doing Elm in the frontend. So I gave Rust a try." />
+<meta property="og:description" content="When looking for a new backend language, I naturally went from Python to the new cool kid: Go. But after only one week of Go, I realised that Go was only half of a progress. Better suited to my needs than Python, but too far away from the developer experience I was enjoying when doing Elm in the frontend. So I gave Rust a try." />
+<link rel="canonical" href="/point/of/view/2018/02/05/from-python-to-go-to-rust.html" />
+<meta property="og:url" content="/point/of/view/2018/02/05/from-python-to-go-to-rust.html" />
+<meta property="og:site_name" content="Allo-Media Technical Blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-02-05T09:00:00+01:00" />
+<script type="application/ld+json">
+{"datePublished":"2018-02-05T09:00:00+01:00","sameAs":null,"@type":"BlogPosting","dateModified":"2018-02-05T09:00:00+01:00","url":"/point/of/view/2018/02/05/from-python-to-go-to-rust.html","mainEntityOfPage":{"@type":"WebPage","@id":"/point/of/view/2018/02/05/from-python-to-go-to-rust.html"},"image":null,"name":null,"author":null,"publisher":null,"description":"When looking for a new backend language, I naturally went from Python to the new cool kid: Go. But after only one week of Go, I realised that Go was only half of a progress. Better suited to my needs than Python, but too far away from the developer experience I was enjoying when doing Elm in the frontend. So I gave Rust a try.","headline":"From python to Go to Rust: an opinionated journey","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+  <link rel="stylesheet" href="/assets/main.css">
+  <link href="https://fonts.googleapis.com/css?family=Lato:300,300i,400,400i,700,700i" rel="stylesheet">
+  <link rel="alternate" type="application/rss+xml" title="Allo-Media Technical Blog" href="/feed.xml">
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header" role="banner">
+
+  <div class="wrapper">
+    
+    
+    
+    <a class="site-title" rel="author" href="/"><img src="/assets/logo.svg" /><span>Tech Blog</span></a>
+
+    
+      <nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger">
+          
+            
+            
+          
+            
+            
+            <a class="page-link" href="/about/">About</a>
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+        </div>
+      </nav>
+    
+  </div>
+</header>
+
+
+    <main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">From python to Go to Rust: an opinionated journey</h1>
+
+    <span>
+      
+        
+        <a href="/tag/rust"><code class="highligher-rouge"><nobr>rust</nobr></code></a>
+      
+        
+        <a href="/tag/go"><code class="highligher-rouge"><nobr>go</nobr></code></a>
+      
+        
+        <a href="/tag/elm"><code class="highligher-rouge"><nobr>elm</nobr></code></a>
+      
+    </span>
+
+    <p class="post-meta">
+      <time class="dt-published" datetime="2018-02-05T09:00:00+01:00" itemprop="datePublished">
+         Feb 5, 2018
+      </time>
+      </p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>When looking for a new backend language, I naturally went from <a href="http://python.org/">Python</a> to the new cool kid: <a href="https://golang.org/">Go</a>. But after only one week of Go, I realised that Go was only half of a progress. Better suited to my needs than Python, but too far away from the <strong>developer experience</strong> I was enjoying when doing <a href="http://elm-lang.org/">Elm</a> in the frontend. So I gave <a href="https://www.rust-lang.org/">Rust</a> a try.</p>
+
+<h2 id="away-from-python">Away from Python,</h2>
+
+<p>For backend development, I’ve mainly been using Python 3 for the past three years. From admin scripts to machine learning to <a href="http://flask.pocoo.org/">Flask</a>/<a href="https://www.djangoproject.com/">Django</a> applications, I’ve done a lot of Python lately, but at some point, <strong>it didn’t feel right anymore</strong>. Well, to be honest, it’s not really at “some totally random point” that it started not to feel right anymore, it was when I started to enjoy programming with a strongly typed language: <a href="http://elm-lang.org/">Elm</a>.</p>
+
+<p>I had the famous feeling “when it compiles it works”, and once you’ve experienced that, <strong>there is no way back</strong>. You try stuff, you follow the friendly compiler error messages, you fix things, and then <em>tada</em>, it works!</p>
+
+<p>Ok so, at this point I knew what I wanted from the “perfect” backend language:</p>
+
+<ol>
+  <li><strong>Static</strong> and <strong>strong</strong> typing</li>
+  <li>Most of the stuff checked at <strong>compile time</strong> (please, no exceptions!)</li>
+  <li><strong>No <code class="highlighter-rouge">null</code></strong></li>
+  <li><strong>No mutability</strong></li>
+  <li>Handle <strong>concurrency</strong> nicely</li>
+</ol>
+
+<p>I see you coming: “hey, this is <a href="https://www.haskell.org/">Haskell</a>”! Yeah indeed, but for whatever reason, I’ve never managed to get anything done with <a href="https://www.haskell.org/">Haskell</a> (and I’ve been trying a lot). This is maybe only me, but from an outsider, the Haskell mindset seems elitist, the documentation and practical examples are lacking and it’s hardly accessible to a beginner. <a href="http://learnyouahaskell.com/">Learn you a Haskell for great good</a> is awesome but very long to read and too abstract for me (you don’t build anything <em>for real</em> during the book).</p>
+
+<p>“Hey, and what about <a href="https://www.scala-lang.org/">Scala</a>?!”. What do you mean by Scala? The better Java? The functional programming language with <a href="https://github.com/scalaz/scalaz">Scalaz</a>? The Object Orienting Programming Functional language that may or may not fail at runtime with a <code class="highlighter-rouge">java.lang.NullPointerException</code> and needs a 4GB JVM running? I tried it some years ago and definitely, this is a no go for me.</p>
+
+<p>After discussing with a few people, I decided to give <strong>Go</strong> a try. It has a <strong>compiler</strong>, <strong>no exceptions</strong>, no <code class="highlighter-rouge">null</code> (but <strong>null values</strong>) and can handle <strong>concurrency</strong> nicely.</p>
+
+<h2 id="into-go">Into Go,</h2>
+
+<p>I decided to rewrite an internal project that was already done in Python using Go. Just to get a feeling of the differences between the two.</p>
+
+<p>First feeling: learning <strong>Go</strong> was so easy. In <strong>one evening</strong>, I was able to compile a Proof Of Concept of the projet with basic features developped and some tests written. This was a very pleasant feeling, I was adding features very fast. The compiler messages were helpful, everything was fine.</p>
+
+<p>And at some point, the tragedy started. I needed to add a field to some struct, so I just modified the struct and was ready to analyze the compiler messages to know where this struct was used in order to add the field where it was needed.</p>
+
+<p>I compiled the code and … no error message. Everything went fine. But?! I just added a field to a struct, the compiler should say that my code is not good anymore because I’m not initializing the value where it should be!</p>
+
+<p>The problem is that, not providing a value to a struct is not a problem in <strong>Go</strong>. This value will default to it’s <a href="https://tour.golang.org/basics/12">zero value</a> and everything will compile. This was the <strong>show stopper</strong> for me. I realized that I <strong>couldn’t rely on the compiler</strong> to get my back when I was doing mistakes. At this point, I was wondering: why should I bother learning <strong>Go</strong> if the compiler can’t do much better than <a href="http://mypy-lang.org/">Python and mypy</a>? Of course concurrency is much better with <strong>Go</strong>, but the downside of not being able to rely on the compiler was too much for me.</p>
+
+<p>Don’t get me wrong, I still think that <strong>Go</strong> is a <strong>progress compared to Python</strong> and I would definitively recommand people to learn Go instead of Python if they had to pick one of the two. But for my personal case, as someone who already knew Python and wanted something a lot safer, Go didn’t bring enough to the table in that specific domain.</p>
+
+<h2 id="into-rust">Into Rust.</h2>
+
+<p>So <strong>Go</strong> was not an option anymore as I realized that what I really needed was a <strong>useful compiler</strong>: a compiler that <strong>should not rely on the fact that I know how to code</strong> (as it has been proven to be false a lot of times). That’s why I took a look at <strong>Rust</strong>.</p>
+
+<p>Rust was not my first choice because it advertises itself as a “system language”, and I’m more of a web developer than a system one. But it had some very compelling selling points:</p>
+
+<ul>
+  <li>No <code class="highlighter-rouge">null</code> values but an <code class="highlighter-rouge">Option</code> type (checked at compile time)</li>
+  <li>No <code class="highlighter-rouge">exceptions</code> but a <code class="highlighter-rouge">Result</code> type (checked at compile time)</li>
+  <li>Variables are <strong>immutable</strong> by default</li>
+  <li>Designed with concurrency in mind</li>
+  <li>Memory safe by design, no garbage collector</li>
+</ul>
+
+<p>I decided to rewrite the <strong>same program</strong> than the one I did in Python and Go. The <strong>onboarding was a lot harder</strong> than with Go. As I did with Go, I tried to go head first, but it was too hard: I needed some new concepts specific to Rust like <strong>ownership</strong> or <strong>lifetimes</strong> to understand the code I was seeing on StackOverflow. So I had no choice but to read the <a href="https://doc.rust-lang.org/book/second-edition/">Rust Book</a>, and it took me two weeks before I could start writing some code (remember that with Go it took me one evening).</p>
+
+<p>But after this steep initial learning curve, I was enjoying writing Rust code, and I’m still enjoying it. With Rust, I don’t have to trust myself, I just have to <strong>follow the compiler</strong> and if I do so, it will most likely work if it compiles. In the end, this is the main feeling I was looking for when searching for a new backend language.</p>
+
+<p>Of course, Rust has a lot of <strong>downsides</strong>:</p>
+<ul>
+  <li>It’s pretty <strong>new and things are moving very fast</strong>. I’m using <a href="https://docs.rs/futures/">futures-rs</a> and <a href="https://hyper.rs/">hyper.rs</a> in my project, and finding good documentation was really hard (kudos to the people on <a href="https://chat.mibbit.com/?server=irc.mozilla.org&amp;channel=%23rust-beginners">irc.mozilla.org#rust-beginners</a> for the help).</li>
+  <li>It forces you to think of things you’re not used to when coming from more <em>high-level</em> languages: <strong>how is the memory managed</strong> (with lifetimes and ownership).</li>
+  <li>Compiler messages are not always straightforward to understand, especially when you’re combining futures and their strange long types.</li>
+  <li>Mutability is allowed, so you can get smashed with side effects</li>
+</ul>
+
+<p>But, it also has a lot of <strong>upsides</strong>:</p>
+<ul>
+  <li>It’s <strong>amazingly fast</strong></li>
+  <li><strong>Tooling is good</strong> (cargo, rustfmt)</li>
+  <li>Most of the things are <strong>checked at compile time</strong></li>
+  <li>You can potentially <strong>do whatever you want with it</strong>, from a browser, to a web app, to some game.</li>
+  <li>Community is welcoming</li>
+  <li>It’s backed by Mozilla</li>
+</ul>
+
+<h2 id="wrapping-up">Wrapping up</h2>
+
+<p><strong>Go</strong> is cool but doesn’t provide enough type safety <strong>for me</strong>. I would rather stick with <strong>Python</strong> and its ecosystem than risking re-writing stuff in <strong>Go</strong> if I don’t need concurrency. If I need concurrency I would still not use <strong>Go</strong> as its lack of type safety will surely hit me back at some point.</p>
+
+<p><strong>Rust</strong> is the perfect candidate for concurrency and safety, even if the <a href="https://crates.io/crates/futures">futures-rs</a> crate (this is how we call libs in Rust) is still early stage. I suspect that <strong>Rust</strong> could become the defacto standard for a lot of backend needs in the future.</p>
+
+<p>For a more in depth blog post discussing the differences between Go and Rust, be sure to check this amazing post by <a href="https://twitter.com/deckarep">Ralph Caraveo (@deckarep)</a> : <a href="https://medium.com/@deckarep/paradigms-of-rust-for-the-go-developer-210f67cd6a29">Paradigms of Rust for the Go developer</a>.</p>
+
+<p>At the very least, I think that I’ve found in Rust <strong>my</strong> new favorite language for the backend.</p>
+
+
+  </div>
+
+  
+
+  <a class="u-url" href="/point/of/view/2018/02/05/from-python-to-go-to-rust.html" hidden></a>
+</article>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Allo-Media Technical Blog</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li>
+            
+              Allo-Media Technical Blog
+            
+            </li>
+            <li>
+              <a href="https://www.allo-media.net/about/jobs/">We're hiring!</a>
+            </li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/allo-media"><span class="icon icon--github"><svg viewBox="0 0 16 16" width="16px" height="16px"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg>
+</span><span class="username">allo-media</span></a>
+
+          </li>
+          
+
+          
+          <li>
+            <a href="https://twitter.com/allomedia"><span class="icon icon--twitter"><svg viewBox="0 0 16 16" width="16px" height="16px"><path fill="#828282" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27 c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767 c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206 C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271 c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469 c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/></svg>
+</span><span class="username">allomedia</span></a>
+
+          </li>
+          
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p>Random things we&#39;re discovering &amp; learning at Allo-Media.</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
