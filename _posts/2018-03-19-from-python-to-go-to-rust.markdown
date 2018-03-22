@@ -2,7 +2,7 @@
 layout: post
 title:  "From python to Go to Rust: an opinionated journey"
 excerpt: "When looking for a new backend language, I naturally went from Python to the new cool kid: Go. But after only one week of Go, I realised that Go was only half of a progress. Better suited to my needs than Python, but too far away from the developer experience I was enjoying when doing Elm in the frontend. So I gave Rust a try."
-date:   2018-02-05 09:00:00 +0100
+date:   2018-03-22 09:00:00 +0100
 categories: point of view
 tags: rust go elm
 ---
