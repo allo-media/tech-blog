@@ -1,0 +1,15 @@
+#Brace ourself data selection, industrialization is coming!
+
+Industrialization is one of the most challenging problems for our company and definitely not only ours. And the question was asked when we thought about building language model automatically, especially regarding data selection. In fact, our LM was hand made thanks to heuristics built by empirical means... Which means that we had to experiment to find the best system with our own eyes. And this is so not compatible with automating.
+##What is data selection you may ask?
+//TODO EXPLAIN DATA SELECTION
+##How we used to do,
+As we discuss above, data selection is a very important step while building a system. Like tons of people, we used the [Moore-Lewis method](http://www.aclweb.org/anthology/P10-2041) which was adapted for bilingual use (like translation) by Axelrod&co called [Domain Adaptation via Pseudo In-Domain Data Selection](https://aclanthology.info/pdf/D/D11/D11-1033.pdf). These are very effective ways to select data using two corpora (in and out domain) and comparing the cross-entropy. But  as we already said it, it need people to choose and validate the model. Moreover something hits us hard. This article turned out to be eight this year and as we all know, eight years is a long period in Computer Science and in Automatic Speech Recognition. So we asked ourself: has anyone done some work about data selection since this article? And are there any relevant work ready for a more industrialized turn?
+After browsing 178 articles quoting the Moore-Lewis one, a title caught our eyes: [Cynical Selection of Language Model Training Data](https://arxiv.org/pdf/1709.02279.pdf). The name was so catchy, we had to explore it. Written by Amittai Axelrod, remember we mentioned him above, we decided to give it a shot [here](https://github.com/allo-media/cynical-selection) because the abstract was full of good promises... And was compatible with industrialization! Unlike the previous method, the algorithm ends up with a response, letting us continue our road toward automating.
+##How does it work? How we make it work?
+The goal is to selection data from our out-domain corpora that can extend our in-domain data. Suppose you have a small in-domain corpora, which you are a hundred percent positive that is representative. The algorithm will take this corpus and a more generic one, where you don't know what's relevant or not. It will then select the sentences that match with the specific one. The script can take arguments which are detailed in the header of the script. It's only required the two corpora data to work : 
+`./cynical-selection.py --task inDomainFile.txt --unadapted outDomainFile.txt` 
+and return to you the list of those sentences along with their scores in a `.jaded` file constructed as follows: 
+`model score sentence score (penalty + gain) length penalty sentence gain sentence id (in the selection) sentence id (in the unadapted corpora) best word word gain sentence`
+In the end, we didn't loose any performance using this method and it allows us to automatize this part, taking us one step closer to industrialization.
+
