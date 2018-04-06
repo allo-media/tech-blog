@@ -35,7 +35,9 @@ and returns you a list of sentences along with their scores in a '.jaded' file c
 for example: 
 
 `2.659289425334946       2.659289425334946       5.71042701737487        -3.0511375920399235     1       1       vous    -0.12597986190092164    merci à vous tous`
+
 `5.318578850669892       2.659289425334946       5.71042701737487        -3.0511375920399235     2       26978   vous    -0.12597986190092164    et vous avez maintenant`
+
 `7.9778682760048385      2.659289425334946       5.71042701737487        -3.0511375920399235     3       26979   vous    -0.12597986190092164    puisque vous avez des`
 
 In the end, we didn't lose any performance using this method and it allowed us to automatize this part, taking us one step closer to industrialization.
