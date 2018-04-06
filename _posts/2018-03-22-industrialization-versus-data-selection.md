@@ -34,14 +34,12 @@ and returns you a list of sentences along with their scores in a '.jaded' file c
 `model score sentence score (penalty + gain) length penalty sentence gain sentence id (in the selection) sentence id (in the unadapted corpora) best word word gain sentence`
 for example: 
 
-`2.659289425334946       2.659289425334946       5.71042701737487        -3.0511375920399235     1       1       vous    -0.12597986190092164    merci à vous tous
-5.318578850669892       2.659289425334946       5.71042701737487        -3.0511375920399235     2       26978   vous    -0.12597986190092164    et vous avez maintenant
-7.9778682760048385      2.659289425334946       5.71042701737487        -3.0511375920399235     3       26979   vous    -0.12597986190092164    puisque vous avez des
-10.748202780082039      2.7703345040771996      5.996452088619021       -3.2261175845418215     4       27682   vous    -0.12597986190092164    vous avez vu les les
-13.534214889316619      2.7860121092345795      5.308267697401205       -2.5222555881666255     5       24400   vous    -0.12597986190092164    vous l' avez `
+`2.659289425334946       2.659289425334946       5.71042701737487        -3.0511375920399235     1       1       vous    -0.12597986190092164    merci à vous tous`
+`5.318578850669892       2.659289425334946       5.71042701737487        -3.0511375920399235     2       26978   vous    -0.12597986190092164    et vous avez maintenant`
+`7.9778682760048385      2.659289425334946       5.71042701737487        -3.0511375920399235     3       26979   vous    -0.12597986190092164    puisque vous avez des`
 
 In the end, we didn't lose any performance using this method and it allowed us to automatize this part, taking us one step closer to industrialization.
-11
+
 ## To conclude
 
 This method allows us to focus on other parts of our systems, making us more productive and more serene towards the building of language model. So it's a success captain!
