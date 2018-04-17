@@ -28,7 +28,7 @@ As we discussed above, data selection is a very important step while building a 
 
 ![example of data selection](/assets/DataSelection.jpg)
 
-So, using the cross-entropy to select, it's not really scalable because the algorithm can't decide when to stop on its own and he has an annoying tendency to promote very short to short sentences meaning our corpus isn't really relevant with conversations. Moreover, something hit us hard. [This paper](http://www.aclweb.org/anthology/P10-2041) turned out to be eight this year and we have never looked for another method before. So we asked ourselves: has any new work been done in data selection since this paper? And is there any relevant work ready for a more industrialized turn?
+So, using the cross-entropy to select, it's not really scalable because the algorithm can't decide when to stop on its own and he has an annoying tendency to promote very short to short sentences meaning our corpus isn't really relevant to conversations. Moreover, something hit us hard. [This paper](http://www.aclweb.org/anthology/P10-2041) turned out to be eight this year and we have never looked for another method before. So we asked ourselves: has any new work been done in data selection since this paper? And is there any relevant work ready for a more industrialized turn?
 
 
 
