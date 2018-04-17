@@ -16,7 +16,7 @@ In order to build these modules, we need data and the more we have and the more 
 ## How we used to do
 
 As we discussed above, data selection is a very important step while building a system. Like many, we used the [Moore-Lewis](http://www.aclweb.org/anthology/P10-2041) method which was also adapted for bilingual use (like translation) by Axelrod et al. in [Domain Adaptation via Pseudo In-Domain Data Selection](https://aclanthology.info/pdf/D/D11/D11-1033.pdf). These are very effective ways to select data using two corpora (in and out domain) by comparing cross-entropies. In-domain meaning that the corpus have specific data, that are relevant with the context, the domain of recognition as explained before with the lawyer/baker thing. Whereas out-of-domain is just a pool of random data, meaning there is relevant and no-relevant data in it! Then about cross-entropy, it's a measure that help choosing well-matched data for the desired output. Thanks to some relevant segment, we compare each segment in the pool of data to retrieve the closest ones to the initial data.
-![example of data selection]()
+![example of data selection]("/assets/DataSelection.jpg")
 
 So, using the cross-entropy to select, it's not really scalable because the algorithm can't decide when to stop on its own and he has an annoying tendency to promote very short to short sentences meaning our corpus isn't really relevant with conversations. Moreover, something hit us hard. [This paper](http://www.aclweb.org/anthology/P10-2041) turned out to be eight this year and we have never looked for another method before. So we asked ourselves: has any new work been done in data selection since this paper? And is there any relevant work ready for a more industrialized turn?
 
