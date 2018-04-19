@@ -1,6 +1,17 @@
+---
+layout: post
+title: "Brace yourself data selection, industrialization is coming!"
+excerpt: "Industrialization is one of the most challenging problems for a start-up like ours. In fact, the research world doesn't have the same relationship with optimization of cost and time than industry. And this matter struck us when we thought about building language models (referred as LM in the following) massively, especially regarding data selection."
+date:2018-03-22 11:37 +0100
+categories: R&D
+tags: data selection industrialization ASR 
+---
+
+
+
 # Brace yourself data selection, industrialization is coming!
 
-Industrialization is one of the most challenging problems for a start-up like ours. In fact, the research world has little to no knowledge when it comes to productivity. And this matter struck us when we thought about building language models (referred as LM in the following) massively, especially regarding data selection.
+Industrialization is one of the most challenging problems for a start-up like ours. In fact, the research world doesn't have the same relationship with optimization of cost and time than industry. And this matter struck us when we thought about building language models (referred as LM in the following) massively, especially regarding data selection.
 Historically, our LMs were crafted one by one with love, with a nice cup of human intervention in between. Meaning that we had to experiment to find the best system empirically. And this is so not compatible with automation.
 What is data selection you may ask? However, first thing first.
 
@@ -8,7 +19,7 @@ What is data selection you may ask? However, first thing first.
 
 In ASR, we usually consider building two independent modules which will be mixed together later on. Each module in itself is very dependent of the language we want to recognize.
 
-- The first one is called acoustic model. It represents the way of speaking. What sounds can be put together to form a word, a sentence. In fact, we represent the language by a serie of phonemes. If we look in [Wiktionary](https://en.wiktionary.org/wiki/phoneme) it's clearer isn't it? Don't confuse with syllable through. We can take an example. The word 'through'(1 syllable) consists of three sounds, three phonemes: 'th' 'r' 'oo'. So the goal is to model the sounds as a sequence of phonemes.
+- The first one is called acoustic model. It represents the way of speaking. What sounds can be put together to form a word, a sentence. In fact, we represent the language by a serie of phonemes. If we look in [Wiktionary](https://en.wiktionary.org/wiki/phoneme) it's clearer isn't it? Don't confuse with syllable through. We can take an example. The word 'through' (1 syllable) consists of three sounds, three phonemes: 'th' 'r' 'oo'. So the goal is to model the sounds as a sequence of phonemes.
 - The second one is the language model, which we want to build automatically. It models the distribution of words for a given language. Thanks to those probabilities, the LM helps in picking the best correspondence between a sequence of phonemes and the words/sentences.
 
 In order to build these modules, we need data and the more we have and the more they are relevant, the better! That's why we need data selection: we need a mean to retrieve relevant data adapted to the context of the recognition. In fact a lawyer and a baker don't speak the same language: they don't use the same lexicon. Data selection is picking the good data that match the domain within millions of examples through the usage of various automatic algorithms.
