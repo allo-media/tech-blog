@@ -27,6 +27,8 @@ to parse different flavors of french (e.g. *soixante-dix* and *septante* for 70,
 
 If you are interested in linguistics, *septante* for 70 and *nonante* for 90 are used in Belgium, Switzerland, Luxembourg, Aosta Valley, Jersey French and to a lesser extend in French regions of Savoie, Franche-Compté and even sometimes in Lorraine and Provence (source [Wikipedia](https://fr.wikipedia.org/wiki/70_(nombre)#Linguistique)). The rest of the French speaking world uses respectively *soixante-dix* and *quatre-vingt-dix*. The usage of *huitante* and *octante* instead of *quatre-vingts* is [more restricted yet](https://fr.wikipedia.org/wiki/80_(nombre)#Huitante).
 
+As French spelling is a touchy topic, the parser is tolerant and accepts both the [1990 spelling reform](https://fr.wikipedia.org/wiki/Rectifications_orthographiques_du_fran%C3%A7ais_en_1990#Les_modifications_apport%C3%A9es) and prior rules. It even has an optional relaxed mode that parses *quatre vingt* as *quatre-vingt* for cases where you prefer to use some punctuation or timing information to help disambiguate and compensate for a wobbly transcription.
+
 Here are two samples of what you can expect from it:
 
 ```python
