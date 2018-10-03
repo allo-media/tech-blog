@@ -14,7 +14,7 @@ grammar is not always right. Besides that, text mining tools and techniques ofte
 
 That's why we decided to add a transformation pass to our speech-to-text engine in order to convert all spoken numbers into their digit spelling.
 
-Here at Allo-Media, we are fond of Open Source Software. So we first looked at the state of the art of python libraries for parsing words into numbers. There were some for the english language, but we didn't find any for the french language. Therefore, we decided to build our own and contribute it back to the community.
+Here at Allo-Media, we are fond of Open Source Software. So we first looked at the state of the art of python libraries for parsing words into numbers. There were some for the english language, but we didn't find any for french. Therefore, we decided to build our own library and contribute it back to the community.
 
 Here are two samples of what you can expect from it:
 
