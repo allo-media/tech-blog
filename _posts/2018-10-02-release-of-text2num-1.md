@@ -1,8 +1,8 @@
 ---
 layout: post
 title:  "Text2num version 1.0.0 released!"
-excerpt: "There already existed some python packages to convert numbers written in english into python numbers or their decimal
-digit representation, but there was nothing available for the french language. That's why we developped this library and shared it with the community."
+excerpt: "There already existed some python packages to convert numbers written in English into Python numbers or their decimal
+digit representation, but there was nothing available for the French language. That's why we developed this library and shared it with the community."
 date:   2018-10-02 12:53:00 +0100
 categories: python
 tags: python NLP
@@ -14,7 +14,7 @@ grammar is not always right. Besides that, text mining tools and techniques ofte
 
 That's why we decided to add a transformation pass to our speech-to-text engine in order to convert all spoken numbers into their digit spelling.
 
-Here at Allo-Media, we are fond of Open Source Software. So we first looked at the state of the art of python libraries for parsing words into numbers. There were some for the english language, but we didn't find any for french. Therefore, we decided to build our own library and contribute it back to the community.
+Here at Allo-Media, we are fond of Open Source Software. So we first looked at the state of the art of [Python](http://www.python.org) libraries for parsing words into numbers. There were some for the English language, but we didn't find any for French. Therefore, we decided to build our own library and contribute it back to the community.
 
 Here are two samples of what you can expect from it:
 
