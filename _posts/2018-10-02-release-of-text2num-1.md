@@ -82,7 +82,7 @@ Example: *trois millions cinq cent vingt-trois mille deux cent quarante* -> 3 ×
 
 Parsing numbers between 1 and 999 is more difficult. The basic idea is that we expect between 0 and 9 hundreds, followed by a ten expression (*vingt, trente, …*) or none and some optional units (from 1 to 9) or extended units (from 1 to 19). The "hard" part is to detect illegal combinations and the end of the number.
 
-As the needs arise, we may develop parsers for other languages on this base, including an robust English one with all the desired features.
+As the needs arise, we may develop parsers for other languages on this base, including a robust English one with all the desired features.
 
 If you are interested in more details or want to contribute, you can check the sources on [GitHub](https://github.com/allo-media/text2num) and the [contribution guide](https://text2num.readthedocs.io/en/stable/contribute.html).
 
