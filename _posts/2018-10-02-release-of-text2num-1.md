@@ -25,9 +25,7 @@ We could have ported the [Word2number](https://pypi.org/project/word2number/) li
 So we started a linguistic parser from scratch that is able to identify numbers and correctly isolate contiguous ones in a sequence. Moreover, we wanted it to be able
 to parse different flavors of french (e.g. *soixante-dix* and *septante* for 70, etc…).
 
-If you are interested in linguistics, *septante* for 70 and *nonante* for 90 are used in Belgium, Switzerland, Luxembourg, Aosta Valley, Jersey French and to a lesser extend in French regions of Savoie, Franche-Compté and even sometimes in Lorraine and Provence (source [Wikipedia](https://fr.wikipedia.org/wiki/70_(nombre)#Linguistique)). The rest of the French speaking world uses respectively *soixante-dix* and *quatre-vingt-dix*. The usage of *Huitante* and *octante* instead of *quatre-vingts* is [more restricted yet](https://fr.wikipedia.org/wiki/80_(nombre)#Huitante).
-
-As french spelling is a touchy topic, we also introduced a relaxed mode for making the dash from the [1990 spelling reform](https://fr.wikipedia.org/wiki/Rectifications_orthographiques_du_fran%C3%A7ais_en_1990#Les_modifications_apport%C3%A9es) optional.
+If you are interested in linguistics, *septante* for 70 and *nonante* for 90 are used in Belgium, Switzerland, Luxembourg, Aosta Valley, Jersey French and to a lesser extend in French regions of Savoie, Franche-Compté and even sometimes in Lorraine and Provence (source [Wikipedia](https://fr.wikipedia.org/wiki/70_(nombre)#Linguistique)). The rest of the French speaking world uses respectively *soixante-dix* and *quatre-vingt-dix*. The usage of *huitante* and *octante* instead of *quatre-vingts* is [more restricted yet](https://fr.wikipedia.org/wiki/80_(nombre)#Huitante).
 
 Here are two samples of what you can expect from it:
 
@@ -80,13 +78,13 @@ As you see, we support decimal numbers as well as ordinal numbers.
 
 The algorithm is quite robust and is based on the observation that big numbers are structured like a sum of **decreasing** powers of thousand in the language, each power of thousand being multiplied by a number from 1 (maybe omitted) to 999. The problem is thus "reduced" to recognizing powers of thousands (*mille, million, milliard*) and being able to parse numbers from 1 to 999.
 
-Example: trois millions cinq cent vingt-trois mille deux cent quarante -> 3 × 1 000 000 + 523 × 1000 + 240.
+Example: *trois millions cinq cent vingt-trois mille deux cent quarante* -> 3 × 1 000 000 + 523 × 1000 + 240.
 
 Parsing numbers between 1 and 999 is more difficult. The basic idea is that we expect between 0 and 9 hundreds, followed by a ten expression (*vingt, trente, …*) or none and some optional units (from 1 to 9) or extended units (from 1 to 19). The "hard" part is to detect illegal combinations and the end of the number.
 
 As the needs arise, we may develop parsers for other languages on this base, including an robust English one with all the desired features.
 
-If you are interested in more details or want to contribute, you can check the source on [GitHub](https://github.com/allo-media/text2num) and the [contribution guide](https://text2num.readthedocs.io/en/stable/contribute.html).
+If you are interested in more details or want to contribute, you can check the sources on [GitHub](https://github.com/allo-media/text2num) and the [contribution guide](https://text2num.readthedocs.io/en/stable/contribute.html).
 
 If you just want to use it, it's just a `pip install text2num` away and the documentation is on [ReadTheDocs](https://text2num.readthedocs.io/).
 
