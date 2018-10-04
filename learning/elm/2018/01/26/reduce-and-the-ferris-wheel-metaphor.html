@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
-
-  <head>
+<html lang="en"><head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Begin Jekyll SEO tag v2.3.0 -->
+  <!-- Begin Jekyll SEO tag v2.4.0 -->
 <title>Reduce and the Ferris wheel metaphor | Allo-Media Technical Blog</title>
+<meta name="generator" content="Jekyll v3.7.3" />
 <meta property="og:title" content="Reduce and the Ferris wheel metaphor" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="I recently had to introduce some Elm concepts to a coworker who had some experience with React and Redux. One of these concepts was List.foldl, a reduction function which exists in many languages, specifically as Array#reduce in JavaScript." />
@@ -17,7 +16,7 @@
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2018-01-26T17:53:00+01:00" />
 <script type="application/ld+json">
-{"image":null,"description":"I recently had to introduce some Elm concepts to a coworker who had some experience with React and Redux. One of these concepts was List.foldl, a reduction function which exists in many languages, specifically as Array#reduce in JavaScript.","mainEntityOfPage":{"@type":"WebPage","@id":"/learning/elm/2018/01/26/reduce-and-the-ferris-wheel-metaphor.html"},"publisher":null,"@type":"BlogPosting","url":"/learning/elm/2018/01/26/reduce-and-the-ferris-wheel-metaphor.html","headline":"Reduce and the Ferris wheel metaphor","name":null,"datePublished":"2018-01-26T17:53:00+01:00","dateModified":"2018-01-26T17:53:00+01:00","sameAs":null,"author":null,"@context":"http://schema.org"}</script>
+{"description":"I recently had to introduce some Elm concepts to a coworker who had some experience with React and Redux. One of these concepts was List.foldl, a reduction function which exists in many languages, specifically as Array#reduce in JavaScript.","mainEntityOfPage":{"@type":"WebPage","@id":"/learning/elm/2018/01/26/reduce-and-the-ferris-wheel-metaphor.html"},"@type":"BlogPosting","url":"/learning/elm/2018/01/26/reduce-and-the-ferris-wheel-metaphor.html","headline":"Reduce and the Ferris wheel metaphor","dateModified":"2018-01-26T17:53:00+01:00","datePublished":"2018-01-26T17:53:00+01:00","@context":"http://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
   <link rel="stylesheet" href="/assets/main.css">
@@ -25,11 +24,7 @@
   <link rel="alternate" type="application/rss+xml" title="Allo-Media Technical Blog" href="/feed.xml">
   
 </head>
-
-
-  <body>
-
-    <header class="site-header" role="banner">
+<body><header class="site-header" role="banner">
 
   <div class="wrapper">
     
@@ -99,14 +94,18 @@
             
             
           
+            
+            
+          
+            
+            
+          
         </div>
       </nav>
     
   </div>
 </header>
-
-
-    <main class="page-content" aria-label="Content">
+<main class="page-content" aria-label="Content">
       <div class="wrapper">
         <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
@@ -147,15 +146,42 @@
 
 <p>We started writing a standard Redux reducer in plain js:</p>
 
-<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">function</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">action</span><span class="p">)</span> <span class="p">{</span><br data-jekyll-commonmark-ghpages="" />    <span class="k">switch</span><span class="p">(</span><span class="nx">action</span><span class="p">.</span><span class="nx">type</span><span class="p">)</span> <span class="p">{</span><br data-jekyll-commonmark-ghpages="" />        <span class="k">case</span> <span class="s2">"EMPTY"</span><span class="p">:</span> <span class="p">{</span><br data-jekyll-commonmark-ghpages="" />            <span class="k">return</span> <span class="nx">init</span><br data-jekyll-commonmark-ghpages="" />        <span class="p">}</span><br data-jekyll-commonmark-ghpages="" />        <span class="k">case</span> <span class="s2">"ADD_WATER"</span><span class="p">:</span> <span class="p">{</span><br data-jekyll-commonmark-ghpages="" />            <span class="k">return</span> <span class="p">{...</span><span class="nx">state</span><span class="p">,</span> <span class="na">water</span><span class="p">:</span> <span class="nx">state</span><span class="p">.</span><span class="nx">water</span> <span class="o">+</span> <span class="mi">1</span><span class="p">}</span><br data-jekyll-commonmark-ghpages="" />        <span class="p">}</span><br data-jekyll-commonmark-ghpages="" />    <span class="p">}</span><br data-jekyll-commonmark-ghpages="" /><span class="p">}</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">function</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">action</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">switch</span><span class="p">(</span><span class="nx">action</span><span class="p">.</span><span class="nx">type</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="s2">"EMPTY"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="nx">init</span>
+        <span class="p">}</span>
+        <span class="k">case</span> <span class="s2">"ADD_WATER"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="p">{...</span><span class="nx">state</span><span class="p">,</span> <span class="na">water</span><span class="p">:</span> <span class="nx">state</span><span class="p">.</span><span class="nx">water</span> <span class="o">+</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
 
 <p>He was like “oh yeah, I know that”. Good! We could use that function iteratively:</p>
 
-<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="c1">// Step by step state building</span><br data-jekyll-commonmark-ghpages="" /><span class="kd">const</span> <span class="nx">init</span> <span class="o">=</span> <span class="p">{</span><span class="na">water</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span><br data-jekyll-commonmark-ghpages="" /><span class="kd">let</span> <span class="nx">state</span> <span class="o">=</span> <span class="nx">init</span><br data-jekyll-commonmark-ghpages="" /><span class="nx">state</span> <span class="o">=</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">})</span><br data-jekyll-commonmark-ghpages="" /><span class="nx">state</span> <span class="o">=</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"EMPTY"</span><span class="p">})</span><br data-jekyll-commonmark-ghpages="" /><span class="nx">state</span> <span class="o">=</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">})</span><br data-jekyll-commonmark-ghpages="" /><span class="nx">state</span> <span class="o">=</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">})</span><br data-jekyll-commonmark-ghpages="" /><br data-jekyll-commonmark-ghpages="" /><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span> <span class="c1">// {water: 2}</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="c1">// Step by step state building</span>
+<span class="kd">const</span> <span class="nx">init</span> <span class="o">=</span> <span class="p">{</span><span class="na">water</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+<span class="kd">let</span> <span class="nx">state</span> <span class="o">=</span> <span class="nx">init</span>
+<span class="nx">state</span> <span class="o">=</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">})</span>
+<span class="nx">state</span> <span class="o">=</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"EMPTY"</span><span class="p">})</span>
+<span class="nx">state</span> <span class="o">=</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">})</span>
+<span class="nx">state</span> <span class="o">=</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">})</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span> <span class="c1">// {water: 2}</span></code></pre></figure>
 
 <p>Or using <code class="highlighter-rouge">Array#reduce</code>:</p>
 
-<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="c1">// Using Array#reduce and an array of actions</span><br data-jekyll-commonmark-ghpages="" /><span class="kd">const</span> <span class="nx">actions</span> <span class="o">=</span> <span class="p">[</span><br data-jekyll-commonmark-ghpages="" />    <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">},</span><br data-jekyll-commonmark-ghpages="" />    <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"EMPTY"</span><span class="p">},</span><br data-jekyll-commonmark-ghpages="" />    <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">},</span><br data-jekyll-commonmark-ghpages="" />    <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">},</span><br data-jekyll-commonmark-ghpages="" /><span class="p">]</span><br data-jekyll-commonmark-ghpages="" /><br data-jekyll-commonmark-ghpages="" /><span class="kd">const</span> <span class="nx">init</span> <span class="o">=</span> <span class="p">{</span><span class="na">water</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span><br data-jekyll-commonmark-ghpages="" /><span class="kd">const</span> <span class="nx">state</span> <span class="o">=</span> <span class="nx">actions</span><span class="p">.</span><span class="nx">reduce</span><span class="p">(</span><span class="nx">reducer</span><span class="p">,</span> <span class="nx">init</span><span class="p">)</span><br data-jekyll-commonmark-ghpages="" /><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span> <span class="c1">// {water: 2}</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="c1">// Using Array#reduce and an array of actions</span>
+<span class="kd">const</span> <span class="nx">actions</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">},</span>
+    <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"EMPTY"</span><span class="p">},</span>
+    <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">},</span>
+    <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">},</span>
+<span class="p">]</span>
+
+<span class="kd">const</span> <span class="nx">init</span> <span class="o">=</span> <span class="p">{</span><span class="na">water</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+<span class="kd">const</span> <span class="nx">state</span> <span class="o">=</span> <span class="nx">actions</span><span class="p">.</span><span class="nx">reduce</span><span class="p">(</span><span class="nx">reducer</span><span class="p">,</span> <span class="nx">init</span><span class="p">)</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span> <span class="c1">// {water: 2}</span></code></pre></figure>
 
 <p>So I could use the Ferris wheel metaphor again:</p>
 
@@ -192,7 +218,48 @@
 
 <p>Our resulting minimalistic implementation was:</p>
 
-<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">type</span> <span class="kt">Action</span><br data-jekyll-commonmark-ghpages="" />    <span class="o">=</span> <span class="kt">AddWater</span><br data-jekyll-commonmark-ghpages="" />    <span class="o">|</span> <span class="kt">Empty</span><br data-jekyll-commonmark-ghpages="" /><br data-jekyll-commonmark-ghpages="" /><span class="kr">type</span> <span class="n">alias</span> <span class="kt">State</span> <span class="o">=</span><br data-jekyll-commonmark-ghpages="" />    <span class="p">{</span> <span class="n">water</span> <span class="o">:</span> <span class="kt">Int</span> <span class="p">}</span><br data-jekyll-commonmark-ghpages="" /><br data-jekyll-commonmark-ghpages="" /><span class="n">init</span> <span class="o">:</span> <span class="kt">State</span><br data-jekyll-commonmark-ghpages="" /><span class="n">init</span> <span class="o">=</span><br data-jekyll-commonmark-ghpages="" />    <span class="p">{</span> <span class="n">water</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span><br data-jekyll-commonmark-ghpages="" /><br data-jekyll-commonmark-ghpages="" /><span class="n">actions</span> <span class="o">:</span> <span class="kt">List</span> <span class="kt">Action</span><br data-jekyll-commonmark-ghpages="" /><span class="n">actions</span> <span class="o">=</span><br data-jekyll-commonmark-ghpages="" />    <span class="p">[</span> <span class="kt">AddWater</span><br data-jekyll-commonmark-ghpages="" />    <span class="p">,</span> <span class="kt">Empty</span><br data-jekyll-commonmark-ghpages="" />    <span class="p">,</span> <span class="kt">AddWater</span><br data-jekyll-commonmark-ghpages="" />    <span class="p">,</span> <span class="kt">AddWater</span><br data-jekyll-commonmark-ghpages="" />    <span class="p">]</span><br data-jekyll-commonmark-ghpages="" /><br data-jekyll-commonmark-ghpages="" /><span class="n">reducer</span> <span class="o">:</span> <span class="kt">Action</span> <span class="o">-&gt;</span> <span class="kt">State</span> <span class="o">-&gt;</span> <span class="kt">State</span><br data-jekyll-commonmark-ghpages="" /><span class="n">reducer</span> <span class="n">action</span> <span class="n">state</span> <span class="o">=</span><br data-jekyll-commonmark-ghpages="" />    <span class="kr">case</span> <span class="n">action</span> <span class="kr">of</span><br data-jekyll-commonmark-ghpages="" />        <span class="kt">Empty</span> <span class="o">-&gt;</span><br data-jekyll-commonmark-ghpages="" />            <span class="n">init</span><br data-jekyll-commonmark-ghpages="" /><br data-jekyll-commonmark-ghpages="" />        <span class="kt">AddWater</span> <span class="o">-&gt;</span><br data-jekyll-commonmark-ghpages="" />            <span class="p">{</span> <span class="n">state</span> <span class="o">|</span> <span class="n">water</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">water</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">}</span><br data-jekyll-commonmark-ghpages="" /><br data-jekyll-commonmark-ghpages="" /><span class="n">main</span> <span class="o">=</span><br data-jekyll-commonmark-ghpages="" />    <span class="n">div</span> <span class="kt">[]</span><br data-jekyll-commonmark-ghpages="" />        <span class="p">[</span> <span class="c1">-- Step by step state building, renders { water = 2 }</span><br data-jekyll-commonmark-ghpages="" />          <span class="n">init</span><br data-jekyll-commonmark-ghpages="" />            <span class="o">|&gt;</span> <span class="n">reducer</span> <span class="kt">AddWater</span><br data-jekyll-commonmark-ghpages="" />            <span class="o">|&gt;</span> <span class="n">reducer</span> <span class="kt">Empty</span><br data-jekyll-commonmark-ghpages="" />            <span class="o">|&gt;</span> <span class="n">reducer</span> <span class="kt">AddWater</span><br data-jekyll-commonmark-ghpages="" />            <span class="o">|&gt;</span> <span class="n">reducer</span> <span class="kt">AddWater</span><br data-jekyll-commonmark-ghpages="" />            <span class="o">|&gt;</span> <span class="n">toString</span> <span class="o">&gt;&gt;</span> <span class="n">text</span><br data-jekyll-commonmark-ghpages="" /><br data-jekyll-commonmark-ghpages="" />        <span class="c1">-- Using List.foldl, renders { water = 2 }</span><br data-jekyll-commonmark-ghpages="" />        <span class="p">,</span> <span class="kt">List</span><span class="o">.</span><span class="n">foldl</span> <span class="n">reducer</span> <span class="n">init</span> <span class="n">actions</span><br data-jekyll-commonmark-ghpages="" />            <span class="o">|&gt;</span> <span class="n">toString</span> <span class="o">&gt;&gt;</span> <span class="n">text</span><br data-jekyll-commonmark-ghpages="" />        <span class="p">]</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">type</span> <span class="kt">Action</span>
+    <span class="o">=</span> <span class="kt">AddWater</span>
+    <span class="o">|</span> <span class="kt">Empty</span>
+
+<span class="kr">type</span> <span class="n">alias</span> <span class="kt">State</span> <span class="o">=</span>
+    <span class="p">{</span> <span class="n">water</span> <span class="o">:</span> <span class="kt">Int</span> <span class="p">}</span>
+
+<span class="n">init</span> <span class="o">:</span> <span class="kt">State</span>
+<span class="n">init</span> <span class="o">=</span>
+    <span class="p">{</span> <span class="n">water</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+
+<span class="n">actions</span> <span class="o">:</span> <span class="kt">List</span> <span class="kt">Action</span>
+<span class="n">actions</span> <span class="o">=</span>
+    <span class="p">[</span> <span class="kt">AddWater</span>
+    <span class="p">,</span> <span class="kt">Empty</span>
+    <span class="p">,</span> <span class="kt">AddWater</span>
+    <span class="p">,</span> <span class="kt">AddWater</span>
+    <span class="p">]</span>
+
+<span class="n">reducer</span> <span class="o">:</span> <span class="kt">Action</span> <span class="o">-&gt;</span> <span class="kt">State</span> <span class="o">-&gt;</span> <span class="kt">State</span>
+<span class="n">reducer</span> <span class="n">action</span> <span class="n">state</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">action</span> <span class="kr">of</span>
+        <span class="kt">Empty</span> <span class="o">-&gt;</span>
+            <span class="n">init</span>
+
+        <span class="kt">AddWater</span> <span class="o">-&gt;</span>
+            <span class="p">{</span> <span class="n">state</span> <span class="o">|</span> <span class="n">water</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">water</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">}</span>
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="kt">[]</span>
+        <span class="p">[</span> <span class="c1">-- Step by step state building, renders { water = 2 }</span>
+          <span class="n">init</span>
+            <span class="o">|&gt;</span> <span class="n">reducer</span> <span class="kt">AddWater</span>
+            <span class="o">|&gt;</span> <span class="n">reducer</span> <span class="kt">Empty</span>
+            <span class="o">|&gt;</span> <span class="n">reducer</span> <span class="kt">AddWater</span>
+            <span class="o">|&gt;</span> <span class="n">reducer</span> <span class="kt">AddWater</span>
+            <span class="o">|&gt;</span> <span class="n">toString</span> <span class="o">&gt;&gt;</span> <span class="n">text</span>
+
+        <span class="c1">-- Using List.foldl, renders { water = 2 }</span>
+        <span class="p">,</span> <span class="kt">List</span><span class="o">.</span><span class="n">foldl</span> <span class="n">reducer</span> <span class="n">init</span> <span class="n">actions</span>
+            <span class="o">|&gt;</span> <span class="n">toString</span> <span class="o">&gt;&gt;</span> <span class="n">text</span>
+        <span class="p">]</span></code></pre></figure>
 
 <p>We quickly drafted this <a href="https://ellie-app.com/kL3dJS7Gta1/4">on Ellie</a>. It’s not graphically impressive, but it works.</p>
 
@@ -219,9 +286,7 @@
 </article>
 
       </div>
-    </main>
-
-    <footer class="site-footer">
+    </main><footer class="site-footer">
 
   <div class="wrapper">
 
@@ -269,8 +334,6 @@
   </div>
 
 </footer>
-
-
-  </body>
+</body>
 
 </html>

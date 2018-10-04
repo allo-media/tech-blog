@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Begin Jekyll SEO tag v2.4.0 -->
+<title>Text2num version 1.0.0 released! | Allo-Media Technical Blog</title>
+<meta name="generator" content="Jekyll v3.7.3" />
+<meta property="og:title" content="Text2num version 1.0.0 released!" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="There already existed some python packages to convert numbers written in English into Python numbers or their decimal digit representation, but there was nothing available for the French language. That’s why we developed this library and shared it with the community." />
+<meta property="og:description" content="There already existed some python packages to convert numbers written in English into Python numbers or their decimal digit representation, but there was nothing available for the French language. That’s why we developed this library and shared it with the community." />
+<link rel="canonical" href="/python/2018/10/02/release-of-text2num-1.html" />
+<meta property="og:url" content="/python/2018/10/02/release-of-text2num-1.html" />
+<meta property="og:site_name" content="Allo-Media Technical Blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-10-02T13:53:00+02:00" />
+<script type="application/ld+json">
+{"description":"There already existed some python packages to convert numbers written in English into Python numbers or their decimal digit representation, but there was nothing available for the French language. That’s why we developed this library and shared it with the community.","mainEntityOfPage":{"@type":"WebPage","@id":"/python/2018/10/02/release-of-text2num-1.html"},"@type":"BlogPosting","url":"/python/2018/10/02/release-of-text2num-1.html","headline":"Text2num version 1.0.0 released!","dateModified":"2018-10-02T13:53:00+02:00","datePublished":"2018-10-02T13:53:00+02:00","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+  <link rel="stylesheet" href="/assets/main.css">
+  <link href="https://fonts.googleapis.com/css?family=Lato:300,300i,400,400i,700,700i" rel="stylesheet">
+  <link rel="alternate" type="application/rss+xml" title="Allo-Media Technical Blog" href="/feed.xml">
+  
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper">
+    
+    
+    
+    <a class="site-title" rel="author" href="/"><img src="/assets/logo.svg" /><span>Tech Blog</span></a>
+
+    
+      <nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger">
+          
+            
+            
+          
+            
+            
+            <a class="page-link" href="/about/">About</a>
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+        </div>
+      </nav>
+    
+  </div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Text2num version 1.0.0 released!</h1>
+
+    <span>
+      
+        
+        <a href="/tag/python"><code class="highligher-rouge"><nobr>python</nobr></code></a>
+      
+        
+        <a href="/tag/NLP"><code class="highligher-rouge"><nobr>NLP</nobr></code></a>
+      
+    </span>
+
+    <p class="post-meta">
+      <time class="dt-published" datetime="2018-10-02T13:53:00+02:00" itemprop="datePublished">
+         Oct 2, 2018
+      </time>
+      </p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>The output of speech-to-text systems are entirely made of words, without punctuation or capitalization. This makes visual scanning for numbers quite cumbersome,
+especially in transcriptions of real life dialogues as they also contain a lot of gibberish words — like « heu, ben, bah… » — and the syntax or
+grammar is not always correct. Besides that, text mining tools and techniques often, if not always, expect numbers to be in decimal digit representation.</p>
+
+<p>That’s why we decided to add a transformation pass to our speech-to-text engine in order to convert all spoken numbers into their digit spelling.</p>
+
+<p>Here at Allo-Media, we are fond of Open Source Software. So we first looked at the state of the art of <a href="http://www.python.org">Python</a> libraries for parsing words into numbers. There was at least <a href="https://pypi.org/project/word2number/">one</a> for the English language, but we didn’t find any for French. Therefore, we decided to build our own library and contribute it back to the community.</p>
+
+<p>We could have ported the <a href="https://pypi.org/project/word2number/">Word2number</a> library, but it has some flaws:</p>
+
+<ul>
+  <li>It is unable to detect by itself the bounds of a number expression;</li>
+  <li>its algorithm is weak (ex: <code class="highlighter-rouge">w2n.word_to_num('hundred five fifty') == 550</code>);</li>
+  <li>French has some pecularities like « <em>quatre-vingt-dix-neuf</em> » vs « <em>nonante-neuf</em> ».</li>
+</ul>
+
+<p>So we started a linguistic parser from scratch that is able to identify numbers and correctly isolate contiguous ones in a sequence. Moreover, we wanted it to be able
+to parse different flavors of french (e.g. <em>soixante-dix</em> and <em>septante</em> for 70, etc…).</p>
+
+<p>If you are interested in linguistics, <em>septante</em> for 70 and <em>nonante</em> for 90 are used in Belgium, Switzerland, Luxembourg, Aosta Valley, Jersey French and to a lesser extend in French regions of Savoie, Franche-Compté and even sometimes in Lorraine and Provence (source <a href="https://fr.wikipedia.org/wiki/70_(nombre)#Linguistique">Wikipedia</a>). The rest of the French speaking world uses respectively <em>soixante-dix</em> and <em>quatre-vingt-dix</em>. The usage area of <em>huitante</em> and <em>octante</em> instead of <em>quatre-vingts</em> is <a href="https://fr.wikipedia.org/wiki/80_(nombre)#Huitante">more restricted yet</a>.</p>
+
+<p>As French spelling is a touchy topic, the parser is tolerant and accepts both the <a href="https://fr.wikipedia.org/wiki/Rectifications_orthographiques_du_fran%C3%A7ais_en_1990#Les_modifications_apport%C3%A9es">1990 spelling reform</a> and prior rules. It even has an optional relaxed mode that parses <em>quatre vingt</em> as <em>quatre-vingt</em> for cases where you prefer to use some punctuation or timing information to help disambiguate and compensate for a wobbly transcription.</p>
+
+<p>Here are two samples of what you can expect from it:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">text_to_num</span> <span class="kn">import</span> <span class="n">text2num</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">text2num</span><span class="p">(</span><span class="s">'quatre-vingt-quinze'</span><span class="p">)</span>
+<span class="mi">95</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">text2num</span><span class="p">(</span><span class="s">'nonante-cinq'</span><span class="p">)</span>
+<span class="mi">95</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">text2num</span><span class="p">(</span><span class="s">'mille neuf cent quatre-vingt dix-neuf'</span><span class="p">)</span>
+<span class="mi">1999</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">text2num</span><span class="p">(</span><span class="s">"cinquante et un million cinq cent soixante dix-huit mille trois cent deux"</span><span class="p">)</span>
+<span class="mi">51578302</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">text2num</span><span class="p">(</span><span class="s">'cent cinq cinquante'</span><span class="p">)</span>
+<span class="nb">AssertionError</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">text_to_num</span> <span class="kn">import</span> <span class="n">alpha2digit</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">alpha2digit</span><span class="p">(</span><span class="s">'cent cinq cinquante'</span><span class="p">)</span>
+<span class="s">'105 50'</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">sentence</span> <span class="o">=</span> <span class="p">(</span>
+<span class="o">...</span>         <span class="s">"Huit cent quarante-deux pommes, vingt-cinq chiens, mille trois chevaux, "</span>
+<span class="o">...</span>         <span class="s">"douze mille six cent quatre-vingt-dix-huit clous.</span><span class="se">\n</span><span class="s">"</span>
+<span class="o">...</span>         <span class="s">"Quatre-vingt-quinze vaut nonante-cinq. On tolère l'absence de tirets avant les unités : "</span>
+<span class="o">...</span>         <span class="s">"soixante seize vaut septante six.</span><span class="se">\n</span><span class="s">"</span>
+<span class="o">...</span>         <span class="s">"Nombres en série : douze quinze zéro zéro quatre vingt cinquante-deux cent trois cinquante deux "</span>
+<span class="o">...</span>         <span class="s">"trente et un.</span><span class="se">\n</span><span class="s">"</span>
+<span class="o">...</span>         <span class="s">"Ordinaux: cinquième troisième vingt et unième centième mille deux cent trentième.</span><span class="se">\n</span><span class="s">"</span>
+<span class="o">...</span>         <span class="s">"Décimaux: douze virgule quatre-vingt dix-neuf, cent vingt virgule zéro cinq ; "</span>
+<span class="o">...</span>         <span class="s">"mais soixante zéro deux."</span>
+<span class="o">...</span>     <span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span><span class="p">(</span><span class="n">alpha2digit</span><span class="p">(</span><span class="n">sentence</span><span class="p">))</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>842 pommes, 25 chiens, 1003 chevaux, 12698 clous.
+95 vaut 95. On tolère l'absence de tirets avant les unités : 76 vaut 76.
+Nombres en série : 12 15 004 20 52 103 52 31.
+Ordinaux: 5ème 3ème 21ème 100ème 1230ème.
+Décimaux: 12,99, 120,05 ; mais 60 02.
+</code></pre></div></div>
+
+<p>As you see, we support decimal numbers as well as ordinal numbers.</p>
+
+<p>The algorithm is quite robust and is based on the observation that big numbers are structured like a sum of <strong>decreasing</strong> powers of thousand in the language, each power of thousand being multiplied by a number from 1 (maybe omitted) to 999. The problem is thus “reduced” to recognizing powers of thousands (<em>mille, million, milliard</em>) and being able to parse numbers from 1 to 999.</p>
+
+<p>Example: <em>trois millions cinq cent vingt-trois mille deux cent quarante</em> -&gt; 3 × 1 000 000 + 523 × 1000 + 240.</p>
+
+<p>Parsing numbers between 1 and 999 is more difficult. The basic idea is that we expect between 0 and 9 hundreds, followed by a ten expression (<em>vingt, trente, …</em>) or none and some optional units (from 1 to 9) or extended units (from 1 to 19). The “hard” part is to detect illegal combinations and the end of the number.</p>
+
+<p>As the needs arise, we may develop parsers for other languages on this base, including a robust English one with all the desired features.</p>
+
+<p>The library is distributed under the <a href="https://en.wikipedia.org/wiki/MIT_License">MIT license</a>.</p>
+
+<p>If you are interested in more details or want to contribute, you can check the sources on <a href="https://github.com/allo-media/text2num">GitHub</a> and the <a href="https://text2num.readthedocs.io/en/stable/contribute.html">contribution guide</a>.</p>
+
+<p>If you just want to use it, it’s just a <code class="highlighter-rouge">pip install text2num</code> away and the documentation is on <a href="https://text2num.readthedocs.io/">ReadTheDocs</a>.</p>
+
+<p>Enjoy!</p>
+
+  </div>
+
+  
+
+  <a class="u-url" href="/python/2018/10/02/release-of-text2num-1.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Allo-Media Technical Blog</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li>
+            
+              Allo-Media Technical Blog
+            
+            </li>
+            <li>
+              <a href="https://www.allo-media.net/about/jobs/">We're hiring!</a>
+            </li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/allo-media"><span class="icon icon--github"><svg viewBox="0 0 16 16" width="16px" height="16px"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg>
+</span><span class="username">allo-media</span></a>
+
+          </li>
+          
+
+          
+          <li>
+            <a href="https://twitter.com/allomedia"><span class="icon icon--twitter"><svg viewBox="0 0 16 16" width="16px" height="16px"><path fill="#828282" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27 c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767 c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206 C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271 c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469 c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/></svg>
+</span><span class="username">allomedia</span></a>
+
+          </li>
+          
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p>Random things we&#39;re discovering &amp; learning at Allo-Media.</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
