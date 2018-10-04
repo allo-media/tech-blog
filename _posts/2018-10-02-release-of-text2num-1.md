@@ -25,7 +25,7 @@ We could have ported the [Word2number](https://pypi.org/project/word2number/) li
 So we started a linguistic parser from scratch that is able to identify numbers and correctly isolate contiguous ones in a sequence. Moreover, we wanted it to be able
 to parse different flavors of french (e.g. *soixante-dix* and *septante* for 70, etc…).
 
-If you are interested in linguistics, *septante* for 70 and *nonante* for 90 are used in Belgium, Switzerland, Luxembourg, Aosta Valley, Jersey French and to a lesser extend in French regions of Savoie, Franche-Compté and even sometimes in Lorraine and Provence (source [Wikipedia](https://fr.wikipedia.org/wiki/70_(nombre)#Linguistique)). The rest of the French speaking world uses respectively *soixante-dix* and *quatre-vingt-dix*. The usage of *huitante* and *octante* instead of *quatre-vingts* is [more restricted yet](https://fr.wikipedia.org/wiki/80_(nombre)#Huitante).
+If you are interested in linguistics, *septante* for 70 and *nonante* for 90 are used in Belgium, Switzerland, Luxembourg, Aosta Valley, Jersey French and to a lesser extend in French regions of Savoie, Franche-Compté and even sometimes in Lorraine and Provence (source [Wikipedia](https://fr.wikipedia.org/wiki/70_(nombre)#Linguistique)). The rest of the French speaking world uses respectively *soixante-dix* and *quatre-vingt-dix*. The usage area of *huitante* and *octante* instead of *quatre-vingts* is [more restricted yet](https://fr.wikipedia.org/wiki/80_(nombre)#Huitante).
 
 As French spelling is a touchy topic, the parser is tolerant and accepts both the [1990 spelling reform](https://fr.wikipedia.org/wiki/Rectifications_orthographiques_du_fran%C3%A7ais_en_1990#Les_modifications_apport%C3%A9es) and prior rules. It even has an optional relaxed mode that parses *quatre vingt* as *quatre-vingt* for cases where you prefer to use some punctuation or timing information to help disambiguate and compensate for a wobbly transcription.
 
@@ -85,6 +85,8 @@ Example: *trois millions cinq cent vingt-trois mille deux cent quarante* -> 3 ×
 Parsing numbers between 1 and 999 is more difficult. The basic idea is that we expect between 0 and 9 hundreds, followed by a ten expression (*vingt, trente, …*) or none and some optional units (from 1 to 9) or extended units (from 1 to 19). The "hard" part is to detect illegal combinations and the end of the number.
 
 As the needs arise, we may develop parsers for other languages on this base, including a robust English one with all the desired features.
+
+The library is distributed under the [MIT license](https://en.wikipedia.org/wiki/MIT_License).
 
 If you are interested in more details or want to contribute, you can check the sources on [GitHub](https://github.com/allo-media/text2num) and the [contribution guide](https://text2num.readthedocs.io/en/stable/contribute.html).
 
