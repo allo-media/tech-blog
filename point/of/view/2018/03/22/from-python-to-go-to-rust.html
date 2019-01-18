@@ -16,7 +16,7 @@
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2018-03-22T09:00:00+01:00" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"/point/of/view/2018/03/22/from-python-to-go-to-rust.html","headline":"From python to Go to Rust: an opinionated journey","dateModified":"2018-03-22T09:00:00+01:00","datePublished":"2018-03-22T09:00:00+01:00","description":"When looking for a new backend language, I naturally went from Python to the new cool kid: Go. But after only one week of Go, I realised that Go was only half of a progress. Better suited to my needs than Python, but too far away from the developer experience I was enjoying when doing Elm in the frontend. So I gave Rust a try.","mainEntityOfPage":{"@type":"WebPage","@id":"/point/of/view/2018/03/22/from-python-to-go-to-rust.html"},"@context":"http://schema.org"}</script>
+{"description":"When looking for a new backend language, I naturally went from Python to the new cool kid: Go. But after only one week of Go, I realised that Go was only half of a progress. Better suited to my needs than Python, but too far away from the developer experience I was enjoying when doing Elm in the frontend. So I gave Rust a try.","@type":"BlogPosting","headline":"From python to Go to Rust: an opinionated journey","dateModified":"2018-03-22T09:00:00+01:00","datePublished":"2018-03-22T09:00:00+01:00","url":"/point/of/view/2018/03/22/from-python-to-go-to-rust.html","mainEntityOfPage":{"@type":"WebPage","@id":"/point/of/view/2018/03/22/from-python-to-go-to-rust.html"},"@context":"http://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
   <link rel="stylesheet" href="/assets/main.css">
@@ -161,7 +161,7 @@
 
 <p>I decided to rewrite an internal project that was already done in Python using Go. Just to get a feeling of the differences between the two.</p>
 
-<p>First feeling: learning <strong>Go</strong> was so easy. In <strong>one evening</strong>, I was able to compile a Proof Of Concept of the projet with basic features developped and some tests written. This was a very pleasant feeling, I was adding features very fast. The compiler messages were helpful, everything was fine.</p>
+<p>First feeling: learning <strong>Go</strong> was so easy. In <strong>one evening</strong>, I was able to compile a Proof Of Concept of the project with basic features developed and some tests written. This was a very pleasant feeling, I was adding features very fast. The compiler messages were helpful, everything was fine.</p>
 
 <p>And at some point, the tragedy started. I needed to add a field to some struct, so I just modified the struct and was ready to analyze the compiler messages to know where this struct was used in order to add the field where it was needed.</p>
 
@@ -169,7 +169,7 @@
 
 <p>The problem is that, not providing a value to a struct is not a problem in <strong>Go</strong>. This value will default to it’s <a href="https://tour.golang.org/basics/12">zero value</a> and everything will compile. This was the <strong>show stopper</strong> for me. I realized that I <strong>couldn’t rely on the compiler</strong> to get my back when I was doing mistakes. At this point, I was wondering: why should I bother learning <strong>Go</strong> if the compiler can’t do much better than <a href="http://mypy-lang.org/">Python and mypy</a>? Of course concurrency is much better with <strong>Go</strong>, but the downside of not being able to rely on the compiler was too much for me.</p>
 
-<p>Don’t get me wrong, I still think that <strong>Go</strong> is a <strong>progress compared to Python</strong> and I would definitively recommand people to learn Go instead of Python if they had to pick one of the two. But for my personal case, as someone who already knew Python and wanted something a lot safer, Go didn’t bring enough to the table in that specific domain.</p>
+<p>Don’t get me wrong, I still think that <strong>Go</strong> is a <strong>progress compared to Python</strong> and I would definitively recommend people to learn Go instead of Python if they had to pick one of the two. But for my personal case, as someone who already knew Python and wanted something a lot safer, Go didn’t bring enough to the table in that specific domain.</p>
 
 <h2 id="into-rust">Into Rust.</h2>
 
