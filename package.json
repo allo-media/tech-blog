@@ -5,8 +5,9 @@
   "description": "Publish commands for the blog",
   "scripts": {
     "build": "bundle exec jekyll build",
-    "publish": "npm run build && gh-pages --dist _site/",
-    "start": "bundle exec jekyll serve"
+    "publish": "npm run build && npm run copy && gh-pages --dist _site/",
+    "start": "bundle exec jekyll serve",
+    "copy": "cp ./CNAME ./_site"
   },
   "repository": {
     "type": "git",
