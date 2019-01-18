@@ -33,7 +33,7 @@ After discussing with a few people, I decided to give __Go__ a try. It has a __c
 
 I decided to rewrite an internal project that was already done in Python using Go. Just to get a feeling of the differences between the two.
 
-First feeling: learning __Go__ was so easy. In __one evening__, I was able to compile a Proof Of Concept of the projet with basic features developped and some tests written. This was a very pleasant feeling, I was adding features very fast. The compiler messages were helpful, everything was fine.
+First feeling: learning __Go__ was so easy. In __one evening__, I was able to compile a Proof Of Concept of the project with basic features developed and some tests written. This was a very pleasant feeling, I was adding features very fast. The compiler messages were helpful, everything was fine.
 
 And at some point, the tragedy started. I needed to add a field to some struct, so I just modified the struct and was ready to analyze the compiler messages to know where this struct was used in order to add the field where it was needed.
 
@@ -41,7 +41,7 @@ I compiled the code and … no error message. Everything went fine. But?! I just
 
 The problem is that, not providing a value to a struct is not a problem in __Go__. This value will default to it's [zero value](https://tour.golang.org/basics/12) and everything will compile. This was the __show stopper__ for me. I realized that I __couldn't rely on the compiler__ to get my back when I was doing mistakes. At this point, I was wondering: why should I bother learning __Go__ if the compiler can't do much better than [Python and mypy](http://mypy-lang.org/)? Of course concurrency is much better with __Go__, but the downside of not being able to rely on the compiler was too much for me.
 
-Don't get me wrong, I still think that __Go__ is a __progress compared to Python__ and I would definitively recommand people to learn Go instead of Python if they had to pick one of the two. But for my personal case, as someone who already knew Python and wanted something a lot safer, Go didn't bring enough to the table in that specific domain.
+Don't get me wrong, I still think that __Go__ is a __progress compared to Python__ and I would definitively recommend people to learn Go instead of Python if they had to pick one of the two. But for my personal case, as someone who already knew Python and wanted something a lot safer, Go didn't bring enough to the table in that specific domain.
 
 ## Into Rust.
 
