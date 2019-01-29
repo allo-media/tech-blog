@@ -77,5 +77,3 @@ decode =
     (Decode.field "lastname" Decode.string)
 
 ```
-
-Une autre fonction qui est souvent utilisé et qui m'a permis d'évoluer est le Maybe.andThen, Task.andThen.
