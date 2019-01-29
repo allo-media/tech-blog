@@ -59,7 +59,7 @@ Nous avons utilisé `Decode.map3`
 Decode.map3 : (a -> b -> c -> value) -> Decoder a -> Decoder b -> Decoder c -> Decoder value
 ```
 
-afin de renvoyer l'id, le firstname, et lastname et de créer un record de type User.
+afin d'avoir en paramètre l'id, le firstname, et lastname et de créer un record de type User.
 
 ```
 type alias User =
