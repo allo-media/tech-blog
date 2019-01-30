@@ -71,7 +71,7 @@ type alias User =
 
 decode : Decoder User
 decode =
-  Decode.map3 (id firstname lastname -> User id firstname lastname)
+  Decode.map3 (\id firstname lastname -> User id firstname lastname)
     (Decode.field "id" Decode.string)
     (Decode.field "firstname" Decode.string)
     (Decode.field "lastname" Decode.string)
