@@ -16,7 +16,7 @@ Ma compréhension sur le langage a fait un bon en avant, quand j'ai réussi à c
 Maybe.map : (a -> b) -> Maybe a -> Maybe b
 ```
 
-Nous allons prendre comme exemple la première fonction *(Maybe.map)*.
+Nous allons prendre comme exemple la première fonction *(Maybe.map)[https://package.elm-lang.org/packages/elm/core/latest/Maybe#map]*.
 Si nous nous reportons à sa signature, on voit que le premier paramètre est une fonction symbolisé par les `()`, et le second paramètre est un `Maybe a` et cela retourne un `Maybe b`.
 
 ## fonction .map   
@@ -76,4 +76,15 @@ decode =
     (Decode.field "firstname" Decode.string)
     (Decode.field "lastname" Decode.string)
 
+```
+
+Du coup si on utilise le currying, le record `User` peut être construit comme indiqué dans la (documentation)[https://guide.elm-lang.org/types/type_aliases.html],la fonction decode peut être réécrite de cette manière là, c'est d'ailleurs celle-ci qui sera le plus souvent utilisé :
+
+```
+decode : Decoder User
+decode =
+  Decode.map3 User
+    (Decode.field "id" Decode.string)
+    (Decode.field "firstname" Decode.string)
+    (Decode.field "lastname" Decode.string)
 ```
