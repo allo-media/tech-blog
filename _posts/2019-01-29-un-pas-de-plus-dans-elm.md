@@ -78,7 +78,7 @@ decode =
 
 ```
 
-On peut utiliser le [currying](https://fr.wikipedia.org/wiki/Curryfication) qui pourrait faire justement l'objet d'un autre article, le record `User` peut être construit comme indiqué dans la [documentation](https://guide.elm-lang.org/types/type_aliases.html),la fonction decode peut être réécrite de cette manière là, c'est d'ailleurs celle-ci qui sera le plus souvent utilisé :
+On peut utiliser le [currying](https://fr.wikipedia.org/wiki/Curryfication) pour construire le records `User` comme indiqué dans la [documentation](https://guide.elm-lang.org/types/type_aliases.html), j'ai volontairement souhaité ne pas aborder le sujet currying qui pourrait faire l'objet d'un autre article. Pour en revenir à la fonction decode, on peut là réécrire de cette manière là, c'est d'ailleurs celle-ci qui sera le plus souvent utilisé :
 
 ```
 decode : Decoder User
