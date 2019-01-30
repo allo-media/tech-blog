@@ -1,16 +1,16 @@
 ---
 layout: post
-title:  "Un pas de plus dans Elm."
-excerpt: "Ma compréhension sur le langage a fait un bon en avant, quand j'ai réussi à comprendre les signatures de Maybe.map, Task.map, Decode.map ."
+title:  "Un pas de plus dans Elm grâce à la compréhension du foo.map"
+excerpt: "Ma compréhension sur le langage a fait un bon en avant, quand j'ai réussi à comprendre les signatures de Maybe.map, Task.map, Decode.map. Du coup, j'ai pensé  que je pourrais essayer de vous transmettre ma compréhension de .map (Decode.map, Maybe.map, Task.map, ...)."
 date:   2019-01-29 23:07:00 +0100
 categories: Elm
 tags: elm map
 ---
 
 
-#  Un pas de plus dans Elm.
+#  Un pas de plus dans Elm grâce à la compréhension du foo.map .
 
-Ma compréhension sur le langage a fait un bon en avant, quand j'ai réussi à comprendre les signatures de Maybe.map, Task.map, Decode.map.
+Ma compréhension sur le langage a fait un bon en avant, quand j'ai réussi à comprendre les signatures de Maybe.map, Task.map, Decode.map. Du coup, j'ai pensé que je pourrais essayer de vous transmettre ma compréhension de .map (Decode.map, Maybe.map, Task.map, ...).
 
 ```elm
 Maybe.map : (a -> b) -> Maybe a -> Maybe b
@@ -29,7 +29,7 @@ Maybe.map : (a -> b) -> Maybe a -> Maybe b
 
 | Nom de la fonction | Premier paramètre | Second paramètre | Résultat de la transformation |
 |:-:|:-:|:-:|:-:|
-| Maybe.map            | (a -> b)| Maybe a          | Maybe b |
+| Maybe.map | (a -> b) | Maybe a | Maybe b |
 
 Nous allons retrouver toute la logique de transformation dans le premier paramètre. En le décomposant on peut voir que c'est une fonction qui prend en premier paramètre, le second paramètre `Maybe a` de `Maybe.map` et renverra le résultat de la transformation à savoir `Maybe b`.
 
@@ -78,7 +78,7 @@ decode =
 
 ```
 
-Du coup si on utilise le currying, le record `User` peut être construit comme indiqué dans la [documentation](https://guide.elm-lang.org/types/type_aliases.html),la fonction decode peut être réécrite de cette manière là, c'est d'ailleurs celle-ci qui sera le plus souvent utilisé :
+On peut utiliser le [currying](https://fr.wikipedia.org/wiki/Curryfication) qui pourrait faire justement l'objet d'un autre article, le record `User` peut être construit comme indiqué dans la [documentation](https://guide.elm-lang.org/types/type_aliases.html),la fonction decode peut être réécrite de cette manière là, c'est d'ailleurs celle-ci qui sera le plus souvent utilisé :
 
 ```
 decode : Decoder User
