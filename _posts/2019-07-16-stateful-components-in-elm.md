@@ -1,21 +1,21 @@
 ---
 layout: post
 title:  "Stateful components in Elm"
-excerpt: "TODO"
+excerpt: "It's often claimed that Elm developers should avoid thinking their views as stateful components. While this is indeed a general best design practice, sometimes you may want to make your views reusable, and if they come with a state... you end up copying and pasting a lot of things."
 date:   2019-07-16 10:00:00 +0100
 categories: elm
 tags: elm
 ---
 
-It's often claimed that [Elm] developers should avoid thinking their views as stateful components. While this is indeed a general best practice, sometimes you may want to make your views reusable (eg. across pages or projects), and if they come with a state... you end up copying and pasting a lot of things.  
+It's often claimed that [Elm] developers should avoid thinking their views as stateful components. While this is indeed a general best design practice, sometimes you may want to make your views reusable (eg. across pages or projects), and if they come with a state... you end up copying and pasting a lot of things.  
 
 We recently published [elm-daterange-picker], a date range picker written in [Elm]. It was the perfect occasion investigating what a reasonable API for a reusable stateful view component would look like.
 
-XXX demo gif
+![widget demo](blob:https://imgur.com/d30c10d3-4f74-4b24-8d5a-423fa3b5eac2)
 
 Many component/widget-oriented Elm packages feature a rather raw [TEA] API, namely exposing `Model`, `Msg(..)`, `init`, `update` and `view`, so you can basically import what defines an actual application and embed it within your own application.   
 
-![](https://i.imgur.com/aBXjI9N.png)
+![funny meme](https://i.imgur.com/aBXjI9N.png)
 
 With these, you usually end up writing things like this:
 
