@@ -11,7 +11,7 @@ It's often claimed that [Elm] developers should avoid thinking their views as st
 
 We recently published [elm-daterange-picker], a date range picker written in [Elm]. It was the perfect occasion investigating what a reasonable API for a reusable stateful view component would look like.
 
-![widget demo](blob:https://imgur.com/d30c10d3-4f74-4b24-8d5a-423fa3b5eac2)
+![app demo](https://i.imgur.com/4Hs0IGa.gif)
 
 Many component/widget-oriented Elm packages feature a rather raw [TEA] API, namely exposing `Model`, `Msg(..)`, `init`, `update` and `view`, so you can basically import what defines an actual application and embed it within your own application.   
 
