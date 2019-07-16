@@ -19,7 +19,7 @@ Many component/widget-oriented Elm packages feature a rather raw [TEA] API, name
 
 With these, you usually end up writing things like this:
 
-```elm
+```haskell
 import Counter
 
 
@@ -81,7 +81,7 @@ There's another way, which [Evan] explained in his now deprecated [elm-sortable-
 
 Let's imagine a simple counter; what if when clicking the *increment* button, instead of calling `onClick` with some `Increment` message, we would call a generic one with the new counter state updated accordingly?
 
-```elm
+```haskell
 -- Widget.elm
 view : (Int -> msg) -> Int -> Html msg
 view toMsg counter =
@@ -91,7 +91,7 @@ view toMsg counter =
 
 Or if you want to use an [opaque type], which is an excellent idea for maintaining the smallest API surface area:
 
-```elm
+```haskell
 -- Widget.elm
 type State
     = State Int
@@ -104,7 +104,7 @@ view toMsg (State value) =
 
 So for instance, to use this `Counter` component in your own application, you just have to write this:
 
-```elm
+```haskell
 type alias Model =
     { widget : Counter.State
     , value : Maybe Int
