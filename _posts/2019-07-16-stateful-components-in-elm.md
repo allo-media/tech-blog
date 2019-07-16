@@ -102,6 +102,45 @@ view toMsg (State value) =
         [ text "increment" ]
 ```
 
+Handling internal state update could be just creating internal and unexposed `Msg` and `update` functions:
+
+```haskell
+-- Widget.elm
+type State
+    = State Int
+
+type Msg
+    = Dec
+    | Inc
+
+update : Msg -> Int -> Int
+update msg value =
+    case msg of
+        Dec ->
+            value - 1
+
+        Inc ->
+            value + 1
+
+view : (State -> msg) -> State -> Html msg
+view toMsg (State value) =
+    div []
+        [ button [ onClick (toMsg (State (update Dec value))) ]
+            [ text "decrement" ]
+        , button [ onClick (toMsg (State (update Inc value))) ]
+            [ text "increment" ]
+        ]
+```
+
+We should also expose helpers to retrieve (or set) values from the opaque `State` type:
+
+```haskell
+-- Widget.elm
+getValue : State -> Int
+getValue (State value) =
+    value
+```
+
 So for instance, to use this `Counter` component in your own application, you just have to write this:
 
 ```haskell
@@ -128,7 +167,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         CounterChanged state ->
-            ( { model | counter = state, value = Counter.value state }
+            ( { model | counter = state, value = Counter.getValue state }
             , Cmd.none
             )
 
