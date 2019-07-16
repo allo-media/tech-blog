@@ -9,7 +9,7 @@ tags: elm
 
 It's often claimed that [Elm] developers should avoid thinking their views as stateful components. While this is indeed a general best design practice, sometimes you may want to make your views reusable (eg. across pages or projects), and if they come with a state... you end up copying and pasting a lot of things.  
 
-We recently published [elm-daterange-picker], a date range picker written in [Elm]. It was the perfect occasion investigating what a reasonable API for a reusable stateful view component would look like.
+We recently published [elm-daterange-picker], a date range picker written in [Elm]. It was the perfect occasion to investigate what a reasonable API for a reusable stateful view component would look like.
 
 ![app demo](/assets/2019-07-16-stateful-components-in-elm/demo.gif)
 
@@ -77,7 +77,9 @@ This certainly works, but let's be frank for a minute and admit this is super ve
 - You need to pattern match `Widget.Msg` to intercept whatever event interests you...
 - ... meaning `Widget` exposes all `Msg`s, which are **implementation details** you now rely on.
 
-There's another way, which [Evan] explained in his now deprecated [elm-sortable-table] package. Among the many good points he has, one idea stroke me as brilliantly simple yet effective to simplify such stateful view components API design: **state updates can be managed right from event handlers**.
+There's another way, which [Evan] explained in his now deprecated [elm-sortable-table] package. Among the many good points he has, one idea stroke me as brilliantly simple yet effective to simplify such stateful view components API design:
+
+> **State updates can be managed right from event handlers!**
 
 Let's imagine a simple counter; what if when clicking the *increment* button, instead of calling `onClick` with some `Increment` message, we would call **a user-provided one** with the new counter state updated accordingly?
 
