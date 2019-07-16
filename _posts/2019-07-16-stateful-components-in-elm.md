@@ -180,7 +180,7 @@ view model =
         ]
 ```
 
-Notice how our `update` function is dramatically simpler to write, and to understand.
+Notice how our `update` function is dramatically simpler to write and to understand.
 
 Of course a counter wouldn't be worth creating a package for it, though this may highlight the concept better. Don't hesitate reading *elm-daterange-picker*'s [source code] and [demo code] to look at a real world application of this design principle.
 
