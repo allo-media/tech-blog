@@ -104,6 +104,8 @@ view toMsg (State value) =
         [ text "increment" ]
 ```
 
+Note that as we're dealing with a counter state, we didn't bother having anything else than a simple `Int` for representing it. But you could of course have a record or anything you want.
+
 Handling internal state update could be just creating internal and unexposed `Msg` and `update` functions:
 
 ```haskell
