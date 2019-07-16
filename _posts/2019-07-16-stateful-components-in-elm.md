@@ -24,7 +24,7 @@ import Counter
 
 
 type alias Model =
-    { widget : Counter.Model
+    { counter : Counter.Model
     , value : Maybe Int
     }
 
@@ -35,7 +35,7 @@ type Msg
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { widget = Counter.init, value = Nothing }
+    ( { counter = Counter.init, value = Nothing }
     , Cmd.none
     )
 
@@ -43,15 +43,15 @@ init _ =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        CounterMsg widgetMsg ->
+        CounterMsg counterMsg ->
             let
                 ( newCounterModel, newCounterCommands ) =
-                    Counter.update widgetMsg
+                    Counter.update counterMsg
             in
             ( { model
-                | widget = newCounterModel
+                | counter = newCounterModel
                 , value =
-                    case widgetMsg of
+                    case counterMsg of
                         Counter.Apply value ->
                             Just value
 
@@ -65,7 +65,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ Counter.view model.widget
+        [ Counter.view model.counter
             |> Html.map CounterMsg
         , text (String.fromInt model.value)
         ]
@@ -74,8 +74,8 @@ view model =
 This certainly works, but let's be frank for a minute and admit this is super verbose and not very developer friendly:
 
 - You need to `Cmd.map` and `Html.map` here and there
-- You need to pattern match `Widget.Msg` to intercept whatever event interests you...
-- ... meaning `Widget` exposes all `Msg`s, which are **implementation details** you now rely on.
+- You need to pattern match `Counter.Msg` to intercept whatever event interests you...
+- ... meaning `Counter` exposes all `Msg`s, which are **implementation details** you now rely on.
 
 There's another way, which [Evan] explained in his now deprecated [elm-sortable-table] package. Among the many good points he has, one idea stroke me as brilliantly simple yet effective to simplify such stateful view components API design:
 
@@ -84,7 +84,7 @@ There's another way, which [Evan] explained in his now deprecated [elm-sortable-
 Let's imagine a simple counter; what if when clicking the *increment* button, instead of calling `onClick` with some `Increment` message, we would call **a user-provided one** with the new counter state updated accordingly?
 
 ```haskell
--- Widget.elm
+-- Counter.elm
 view : (Int -> msg) -> Int -> Html msg
 view toMsg counter =
     button [ onClick (toMsg (counter + 1)) ]
@@ -94,7 +94,7 @@ view toMsg counter =
 Or if you want to use an [opaque type], which is an excellent idea for maintaining the smallest API surface area:
 
 ```haskell
--- Widget.elm
+-- Counter.elm
 type State
     = State Int
 
@@ -109,7 +109,7 @@ Note that as we're dealing with a counter state, we didn't bother having anythin
 Handling internal state update could be just creating internal and unexposed `Msg` and `update` functions:
 
 ```haskell
--- Widget.elm
+-- Counter.elm
 type State
     = State Int
 
@@ -139,7 +139,7 @@ view toMsg (State value) =
 We should also expose helpers to retrieve (or set) values from the opaque `State` type:
 
 ```haskell
--- Widget.elm
+-- Counter.elm
 getValue : State -> Int
 getValue (State value) =
     value
@@ -151,7 +151,7 @@ So for instance, to use this `Counter` component in your own application, you ju
 import Counter
 
 type alias Model =
-    { widget : Counter.State
+    { counter : Counter.State
     , value : Maybe Int
     }
 
@@ -162,7 +162,7 @@ type Msg
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { widget = Counter.init, value = Nothing }
+    ( { counter = Counter.init, value = Nothing }
     , Cmd.none
     )
 
@@ -179,7 +179,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ Counter.view CounterChanged model.widget
+        [ Counter.view CounterChanged model.counter
         , text (String.fromInt model.value)
         ]
 ```
