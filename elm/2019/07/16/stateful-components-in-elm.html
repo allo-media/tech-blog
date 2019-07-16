@@ -148,7 +148,7 @@
 
 
 <span class="kr">type</span> <span class="n">alias</span> <span class="kt">Model</span> <span class="o">=</span>
-    <span class="p">{</span> <span class="n">widget</span> <span class="o">:</span> <span class="kt">Counter</span><span class="o">.</span><span class="kt">Model</span>
+    <span class="p">{</span> <span class="n">counter</span> <span class="o">:</span> <span class="kt">Counter</span><span class="o">.</span><span class="kt">Model</span>
     <span class="p">,</span> <span class="n">value</span> <span class="o">:</span> <span class="kt">Maybe</span> <span class="kt">Int</span>
     <span class="p">}</span>
 
@@ -159,7 +159,7 @@
 
 <span class="n">init</span> <span class="o">:</span> <span class="nb">()</span> <span class="o">-&gt;</span> <span class="p">(</span> <span class="kt">Model</span><span class="p">,</span> <span class="kt">Cmd</span> <span class="kt">Msg</span> <span class="p">)</span>
 <span class="n">init</span> <span class="kr">_</span> <span class="o">=</span>
-    <span class="p">(</span> <span class="p">{</span> <span class="n">widget</span> <span class="o">=</span> <span class="kt">Counter</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="kt">Nothing</span> <span class="p">}</span>
+    <span class="p">(</span> <span class="p">{</span> <span class="n">counter</span> <span class="o">=</span> <span class="kt">Counter</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="kt">Nothing</span> <span class="p">}</span>
     <span class="p">,</span> <span class="kt">Cmd</span><span class="o">.</span><span class="n">none</span>
     <span class="p">)</span>
 
@@ -167,15 +167,15 @@
 <span class="n">update</span> <span class="o">:</span> <span class="kt">Msg</span> <span class="o">-&gt;</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="p">(</span> <span class="kt">Model</span><span class="p">,</span> <span class="kt">Cmd</span> <span class="kt">Msg</span> <span class="p">)</span>
 <span class="n">update</span> <span class="n">msg</span> <span class="n">model</span> <span class="o">=</span>
     <span class="kr">case</span> <span class="n">msg</span> <span class="kr">of</span>
-        <span class="kt">CounterMsg</span> <span class="n">widgetMsg</span> <span class="o">-&gt;</span>
+        <span class="kt">CounterMsg</span> <span class="n">counterMsg</span> <span class="o">-&gt;</span>
             <span class="kr">let</span>
                 <span class="p">(</span> <span class="n">newCounterModel</span><span class="p">,</span> <span class="n">newCounterCommands</span> <span class="p">)</span> <span class="o">=</span>
-                    <span class="kt">Counter</span><span class="o">.</span><span class="n">update</span> <span class="n">widgetMsg</span>
+                    <span class="kt">Counter</span><span class="o">.</span><span class="n">update</span> <span class="n">counterMsg</span>
             <span class="kr">in</span>
             <span class="p">(</span> <span class="p">{</span> <span class="n">model</span>
-                <span class="o">|</span> <span class="n">widget</span> <span class="o">=</span> <span class="n">newCounterModel</span>
+                <span class="o">|</span> <span class="n">counter</span> <span class="o">=</span> <span class="n">newCounterModel</span>
                 <span class="p">,</span> <span class="n">value</span> <span class="o">=</span>
-                    <span class="kr">case</span> <span class="n">widgetMsg</span> <span class="kr">of</span>
+                    <span class="kr">case</span> <span class="n">counterMsg</span> <span class="kr">of</span>
                         <span class="kt">Counter</span><span class="o">.</span><span class="kt">Apply</span> <span class="n">value</span> <span class="o">-&gt;</span>
                             <span class="kt">Just</span> <span class="n">value</span>
 
@@ -189,7 +189,7 @@
 <span class="n">view</span> <span class="o">:</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="kt">Msg</span>
 <span class="n">view</span> <span class="n">model</span> <span class="o">=</span>
     <span class="n">div</span> <span class="kt">[]</span>
-        <span class="p">[</span> <span class="kt">Counter</span><span class="o">.</span><span class="n">view</span> <span class="n">model</span><span class="o">.</span><span class="n">widget</span>
+        <span class="p">[</span> <span class="kt">Counter</span><span class="o">.</span><span class="n">view</span> <span class="n">model</span><span class="o">.</span><span class="n">counter</span>
             <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">map</span> <span class="kt">CounterMsg</span>
         <span class="p">,</span> <span class="n">text</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">fromInt</span> <span class="n">model</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
         <span class="p">]</span>
@@ -199,8 +199,8 @@
 
 <ul>
   <li>You need to <code class="highlighter-rouge">Cmd.map</code> and <code class="highlighter-rouge">Html.map</code> here and there</li>
-  <li>You need to pattern match <code class="highlighter-rouge">Widget.Msg</code> to intercept whatever event interests you…</li>
-  <li>… meaning <code class="highlighter-rouge">Widget</code> exposes all <code class="highlighter-rouge">Msg</code>s, which are <strong>implementation details</strong> you now rely on.</li>
+  <li>You need to pattern match <code class="highlighter-rouge">Counter.Msg</code> to intercept whatever event interests you…</li>
+  <li>… meaning <code class="highlighter-rouge">Counter</code> exposes all <code class="highlighter-rouge">Msg</code>s, which are <strong>implementation details</strong> you now rely on.</li>
 </ul>
 
 <p>There’s another way, which <a href="https://github.com/evancz/">Evan</a> explained in his now deprecated <a href="https://github.com/evancz/elm-sortable-table#about-api-design">elm-sortable-table</a> package. Among the many good points he has, one idea stroke me as brilliantly simple yet effective to simplify such stateful view components API design:</p>
@@ -211,7 +211,7 @@
 
 <p>Let’s imagine a simple counter; what if when clicking the <em>increment</em> button, instead of calling <code class="highlighter-rouge">onClick</code> with some <code class="highlighter-rouge">Increment</code> message, we would call <strong>a user-provided one</strong> with the new counter state updated accordingly?</p>
 
-<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Widget.elm</span>
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Counter.elm</span>
 <span class="n">view</span> <span class="o">:</span> <span class="p">(</span><span class="kt">Int</span> <span class="o">-&gt;</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Int</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
 <span class="n">view</span> <span class="n">toMsg</span> <span class="n">counter</span> <span class="o">=</span>
     <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="p">(</span><span class="n">toMsg</span> <span class="p">(</span><span class="n">counter</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="p">]</span>
@@ -220,7 +220,7 @@
 
 <p>Or if you want to use an <a href="https://medium.com/@ckoster22/advanced-types-in-elm-opaque-types-ec5ec3b84ed2">opaque type</a>, which is an excellent idea for maintaining the smallest API surface area:</p>
 
-<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Widget.elm</span>
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Counter.elm</span>
 <span class="kr">type</span> <span class="kt">State</span>
     <span class="o">=</span> <span class="kt">State</span> <span class="kt">Int</span>
 
@@ -234,7 +234,7 @@
 
 <p>Handling internal state update could be just creating internal and unexposed <code class="highlighter-rouge">Msg</code> and <code class="highlighter-rouge">update</code> functions:</p>
 
-<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Widget.elm</span>
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Counter.elm</span>
 <span class="kr">type</span> <span class="kt">State</span>
     <span class="o">=</span> <span class="kt">State</span> <span class="kt">Int</span>
 
@@ -263,7 +263,7 @@
 
 <p>We should also expose helpers to retrieve (or set) values from the opaque <code class="highlighter-rouge">State</code> type:</p>
 
-<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Widget.elm</span>
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Counter.elm</span>
 <span class="n">getValue</span> <span class="o">:</span> <span class="kt">State</span> <span class="o">-&gt;</span> <span class="kt">Int</span>
 <span class="n">getValue</span> <span class="p">(</span><span class="kt">State</span> <span class="n">value</span><span class="p">)</span> <span class="o">=</span>
     <span class="n">value</span>
@@ -274,7 +274,7 @@
 <div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kr">import</span> <span class="nn">Counter</span>
 
 <span class="kr">type</span> <span class="n">alias</span> <span class="kt">Model</span> <span class="o">=</span>
-    <span class="p">{</span> <span class="n">widget</span> <span class="o">:</span> <span class="kt">Counter</span><span class="o">.</span><span class="kt">State</span>
+    <span class="p">{</span> <span class="n">counter</span> <span class="o">:</span> <span class="kt">Counter</span><span class="o">.</span><span class="kt">State</span>
     <span class="p">,</span> <span class="n">value</span> <span class="o">:</span> <span class="kt">Maybe</span> <span class="kt">Int</span>
     <span class="p">}</span>
 
@@ -285,7 +285,7 @@
 
 <span class="n">init</span> <span class="o">:</span> <span class="nb">()</span> <span class="o">-&gt;</span> <span class="p">(</span> <span class="kt">Model</span><span class="p">,</span> <span class="kt">Cmd</span> <span class="kt">Msg</span> <span class="p">)</span>
 <span class="n">init</span> <span class="kr">_</span> <span class="o">=</span>
-    <span class="p">(</span> <span class="p">{</span> <span class="n">widget</span> <span class="o">=</span> <span class="kt">Counter</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="kt">Nothing</span> <span class="p">}</span>
+    <span class="p">(</span> <span class="p">{</span> <span class="n">counter</span> <span class="o">=</span> <span class="kt">Counter</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="kt">Nothing</span> <span class="p">}</span>
     <span class="p">,</span> <span class="kt">Cmd</span><span class="o">.</span><span class="n">none</span>
     <span class="p">)</span>
 
@@ -302,7 +302,7 @@
 <span class="n">view</span> <span class="o">:</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="kt">Msg</span>
 <span class="n">view</span> <span class="n">model</span> <span class="o">=</span>
     <span class="n">div</span> <span class="kt">[]</span>
-        <span class="p">[</span> <span class="kt">Counter</span><span class="o">.</span><span class="n">view</span> <span class="kt">CounterChanged</span> <span class="n">model</span><span class="o">.</span><span class="n">widget</span>
+        <span class="p">[</span> <span class="kt">Counter</span><span class="o">.</span><span class="n">view</span> <span class="kt">CounterChanged</span> <span class="n">model</span><span class="o">.</span><span class="n">counter</span>
         <span class="p">,</span> <span class="n">text</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">fromInt</span> <span class="n">model</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
         <span class="p">]</span>
 </code></pre></div></div>
