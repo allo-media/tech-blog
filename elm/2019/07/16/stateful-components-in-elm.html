@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>Stateful components in Elm | Allo-Media Technical Blog</title>
+<meta name="generator" content="Jekyll v3.7.4" />
+<meta property="og:title" content="Stateful components in Elm" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="It’s often claimed that Elm developers should avoid thinking their views as stateful components. While this is indeed a general best design practice, sometimes you may want to make your views reusable, and if they come with a state… you end up copying and pasting a lot of things." />
+<meta property="og:description" content="It’s often claimed that Elm developers should avoid thinking their views as stateful components. While this is indeed a general best design practice, sometimes you may want to make your views reusable, and if they come with a state… you end up copying and pasting a lot of things." />
+<link rel="canonical" href="/elm/2019/07/16/stateful-components-in-elm.html" />
+<meta property="og:url" content="/elm/2019/07/16/stateful-components-in-elm.html" />
+<meta property="og:site_name" content="Allo-Media Technical Blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-07-16T11:00:00+02:00" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","headline":"Stateful components in Elm","dateModified":"2019-07-16T11:00:00+02:00","datePublished":"2019-07-16T11:00:00+02:00","mainEntityOfPage":{"@type":"WebPage","@id":"/elm/2019/07/16/stateful-components-in-elm.html"},"url":"/elm/2019/07/16/stateful-components-in-elm.html","description":"It’s often claimed that Elm developers should avoid thinking their views as stateful components. While this is indeed a general best design practice, sometimes you may want to make your views reusable, and if they come with a state… you end up copying and pasting a lot of things.","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+  <link rel="stylesheet" href="/assets/main.css">
+  <link href="https://fonts.googleapis.com/css?family=Lato:300,300i,400,400i,700,700i" rel="stylesheet">
+  <link rel="alternate" type="application/rss+xml" title="Allo-Media Technical Blog" href="/feed.xml">
+  
+  <style>
+    pre, code {
+      font-family: Consolas, Menlo, "Deja Vu Sans", monospace;
+    }
+  </style>
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper">
+    
+    
+    
+    <a class="site-title" rel="author" href="/"><img src="/assets/logo.svg" /><span>Tech Blog</span></a>
+
+    
+      <nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger">
+          
+            
+            
+          
+            
+            
+            <a class="page-link" href="/about/">About</a>
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+        </div>
+      </nav>
+    
+  </div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Stateful components in Elm</h1>
+
+    <span>
+      
+        
+        <a href="/tag/elm"><code class="highligher-rouge"><nobr>elm</nobr></code></a>
+      
+    </span>
+
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-07-16T11:00:00+02:00" itemprop="datePublished">
+         Jul 16, 2019
+      </time>
+      </p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>It’s often claimed that <a href="https://elm-lang.org/">Elm</a> developers should avoid thinking their views as stateful components. While this is indeed a general best design practice, sometimes you may want to make your views reusable (eg. across pages or projects), and if they come with a state… you end up copying and pasting a lot of things.</p>
+
+<p>We recently published <a href="https://package.elm-lang.org/packages/allo-media/elm-daterange-picker/latest/">elm-daterange-picker</a>, a date range picker written in <a href="https://elm-lang.org/">Elm</a>. It was the perfect occasion to investigate what a reasonable API for a reusable stateful view component would look like.</p>
+
+<p><img src="/assets/2019-07-16-stateful-components-in-elm/demo.gif" alt="app demo" /></p>
+
+<p>Many component/widget-oriented Elm packages feature a rather raw <a href="https://guide.elm-lang.org/architecture/">Elm Architecture (TEA)</a> API, directly exposing <code class="highlighter-rouge">Model</code>, <code class="highlighter-rouge">Msg(..)</code>, <code class="highlighter-rouge">init</code>, <code class="highlighter-rouge">update</code> and <code class="highlighter-rouge">view</code>, so you can basically import what defines an actual application and embed it within your own application.</p>
+
+<p><img src="/assets/2019-07-16-stateful-components-in-elm/meme.jpg" alt="funny meme" /></p>
+
+<p>With these, you usually end up writing things like this:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kr">import</span> <span class="nn">Counter</span>
+
+
+<span class="kr">type</span> <span class="n">alias</span> <span class="kt">Model</span> <span class="o">=</span>
+    <span class="p">{</span> <span class="n">widget</span> <span class="o">:</span> <span class="kt">Counter</span><span class="o">.</span><span class="kt">Model</span>
+    <span class="p">,</span> <span class="n">value</span> <span class="o">:</span> <span class="kt">Maybe</span> <span class="kt">Int</span>
+    <span class="p">}</span>
+
+
+<span class="kr">type</span> <span class="kt">Msg</span>
+    <span class="o">=</span> <span class="kt">CounterMsg</span> <span class="kt">Counter</span><span class="o">.</span><span class="kt">Msg</span>
+
+
+<span class="n">init</span> <span class="o">:</span> <span class="nb">()</span> <span class="o">-&gt;</span> <span class="p">(</span> <span class="kt">Model</span><span class="p">,</span> <span class="kt">Cmd</span> <span class="kt">Msg</span> <span class="p">)</span>
+<span class="n">init</span> <span class="kr">_</span> <span class="o">=</span>
+    <span class="p">(</span> <span class="p">{</span> <span class="n">widget</span> <span class="o">=</span> <span class="kt">Counter</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="kt">Nothing</span> <span class="p">}</span>
+    <span class="p">,</span> <span class="kt">Cmd</span><span class="o">.</span><span class="n">none</span>
+    <span class="p">)</span>
+
+
+<span class="n">update</span> <span class="o">:</span> <span class="kt">Msg</span> <span class="o">-&gt;</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="p">(</span> <span class="kt">Model</span><span class="p">,</span> <span class="kt">Cmd</span> <span class="kt">Msg</span> <span class="p">)</span>
+<span class="n">update</span> <span class="n">msg</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">msg</span> <span class="kr">of</span>
+        <span class="kt">CounterMsg</span> <span class="n">widgetMsg</span> <span class="o">-&gt;</span>
+            <span class="kr">let</span>
+                <span class="p">(</span> <span class="n">newCounterModel</span><span class="p">,</span> <span class="n">newCounterCommands</span> <span class="p">)</span> <span class="o">=</span>
+                    <span class="kt">Counter</span><span class="o">.</span><span class="n">update</span> <span class="n">widgetMsg</span>
+            <span class="kr">in</span>
+            <span class="p">(</span> <span class="p">{</span> <span class="n">model</span>
+                <span class="o">|</span> <span class="n">widget</span> <span class="o">=</span> <span class="n">newCounterModel</span>
+                <span class="p">,</span> <span class="n">value</span> <span class="o">=</span>
+                    <span class="kr">case</span> <span class="n">widgetMsg</span> <span class="kr">of</span>
+                        <span class="kt">Counter</span><span class="o">.</span><span class="kt">Apply</span> <span class="n">value</span> <span class="o">-&gt;</span>
+                            <span class="kt">Just</span> <span class="n">value</span>
+
+                        <span class="kr">_</span> <span class="o">-&gt;</span>
+                            <span class="kt">Nothing</span>
+              <span class="p">}</span>
+            <span class="p">,</span> <span class="n">newCommands</span> <span class="o">|&gt;</span> <span class="kt">Cmd</span><span class="o">.</span><span class="n">map</span> <span class="kt">CounterMsg</span>
+            <span class="p">)</span>
+
+
+<span class="n">view</span> <span class="o">:</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="kt">Msg</span>
+<span class="n">view</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="kt">[]</span>
+        <span class="p">[</span> <span class="kt">Counter</span><span class="o">.</span><span class="n">view</span> <span class="n">model</span><span class="o">.</span><span class="n">widget</span>
+            <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">map</span> <span class="kt">CounterMsg</span>
+        <span class="p">,</span> <span class="n">text</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">fromInt</span> <span class="n">model</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="p">]</span>
+</code></pre></div></div>
+
+<p>This certainly works, but let’s be frank for a minute and admit this is super verbose and not very developer friendly:</p>
+
+<ul>
+  <li>You need to <code class="highlighter-rouge">Cmd.map</code> and <code class="highlighter-rouge">Html.map</code> here and there</li>
+  <li>You need to pattern match <code class="highlighter-rouge">Widget.Msg</code> to intercept whatever event interests you…</li>
+  <li>… meaning <code class="highlighter-rouge">Widget</code> exposes all <code class="highlighter-rouge">Msg</code>s, which are <strong>implementation details</strong> you now rely on.</li>
+</ul>
+
+<p>There’s another way, which <a href="https://github.com/evancz/">Evan</a> explained in his now deprecated <a href="https://github.com/evancz/elm-sortable-table#about-api-design">elm-sortable-table</a> package. Among the many good points he has, one idea stroke me as brilliantly simple yet effective to simplify such stateful view components API design:</p>
+
+<blockquote>
+  <p><strong>State updates can be managed right from event handlers!</strong></p>
+</blockquote>
+
+<p>Let’s imagine a simple counter; what if when clicking the <em>increment</em> button, instead of calling <code class="highlighter-rouge">onClick</code> with some <code class="highlighter-rouge">Increment</code> message, we would call <strong>a user-provided one</strong> with the new counter state updated accordingly?</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Widget.elm</span>
+<span class="n">view</span> <span class="o">:</span> <span class="p">(</span><span class="kt">Int</span> <span class="o">-&gt;</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Int</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">view</span> <span class="n">toMsg</span> <span class="n">counter</span> <span class="o">=</span>
+    <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="p">(</span><span class="n">toMsg</span> <span class="p">(</span><span class="n">counter</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="p">]</span>
+        <span class="p">[</span> <span class="n">text</span> <span class="s">"increment"</span> <span class="p">]</span>
+</code></pre></div></div>
+
+<p>Or if you want to use an <a href="https://medium.com/@ckoster22/advanced-types-in-elm-opaque-types-ec5ec3b84ed2">opaque type</a>, which is an excellent idea for maintaining the smallest API surface area:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Widget.elm</span>
+<span class="kr">type</span> <span class="kt">State</span>
+    <span class="o">=</span> <span class="kt">State</span> <span class="kt">Int</span>
+
+<span class="n">view</span> <span class="o">:</span> <span class="p">(</span><span class="kt">State</span> <span class="o">-&gt;</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">State</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">view</span> <span class="n">toMsg</span> <span class="p">(</span><span class="kt">State</span> <span class="n">value</span><span class="p">)</span> <span class="o">=</span>
+    <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="p">(</span><span class="n">toMsg</span> <span class="p">(</span><span class="kt">State</span> <span class="p">(</span><span class="n">value</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)))</span> <span class="p">]</span>
+        <span class="p">[</span> <span class="n">text</span> <span class="s">"increment"</span> <span class="p">]</span>
+</code></pre></div></div>
+
+<p>Note that as we’re dealing with a counter state, we didn’t bother having anything else than a simple <code class="highlighter-rouge">Int</code> for representing it. But you could of course have a record or anything you want.</p>
+
+<p>Handling internal state update could be just creating internal and unexposed <code class="highlighter-rouge">Msg</code> and <code class="highlighter-rouge">update</code> functions:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Widget.elm</span>
+<span class="kr">type</span> <span class="kt">State</span>
+    <span class="o">=</span> <span class="kt">State</span> <span class="kt">Int</span>
+
+<span class="kr">type</span> <span class="kt">Msg</span>
+    <span class="o">=</span> <span class="kt">Dec</span>
+    <span class="o">|</span> <span class="kt">Inc</span>
+
+<span class="n">update</span> <span class="o">:</span> <span class="kt">Msg</span> <span class="o">-&gt;</span> <span class="kt">Int</span> <span class="o">-&gt;</span> <span class="kt">Int</span>
+<span class="n">update</span> <span class="n">msg</span> <span class="n">value</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">msg</span> <span class="kr">of</span>
+        <span class="kt">Dec</span> <span class="o">-&gt;</span>
+            <span class="n">value</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="kt">Inc</span> <span class="o">-&gt;</span>
+            <span class="n">value</span> <span class="o">+</span> <span class="mi">1</span>
+
+<span class="n">view</span> <span class="o">:</span> <span class="p">(</span><span class="kt">State</span> <span class="o">-&gt;</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">State</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">view</span> <span class="n">toMsg</span> <span class="p">(</span><span class="kt">State</span> <span class="n">value</span><span class="p">)</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="kt">[]</span>
+        <span class="p">[</span> <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="p">(</span><span class="n">toMsg</span> <span class="p">(</span><span class="kt">State</span> <span class="p">(</span><span class="n">update</span> <span class="kt">Dec</span> <span class="n">value</span><span class="p">)))</span> <span class="p">]</span>
+            <span class="p">[</span> <span class="n">text</span> <span class="s">"decrement"</span> <span class="p">]</span>
+        <span class="p">,</span> <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="p">(</span><span class="n">toMsg</span> <span class="p">(</span><span class="kt">State</span> <span class="p">(</span><span class="n">update</span> <span class="kt">Inc</span> <span class="n">value</span><span class="p">)))</span> <span class="p">]</span>
+            <span class="p">[</span> <span class="n">text</span> <span class="s">"increment"</span> <span class="p">]</span>
+        <span class="p">]</span>
+</code></pre></div></div>
+
+<p>We should also expose helpers to retrieve (or set) values from the opaque <code class="highlighter-rouge">State</code> type:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Widget.elm</span>
+<span class="n">getValue</span> <span class="o">:</span> <span class="kt">State</span> <span class="o">-&gt;</span> <span class="kt">Int</span>
+<span class="n">getValue</span> <span class="p">(</span><span class="kt">State</span> <span class="n">value</span><span class="p">)</span> <span class="o">=</span>
+    <span class="n">value</span>
+</code></pre></div></div>
+
+<p>So for instance, to use this <code class="highlighter-rouge">Counter</code> component in your own application, you just have to write this:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kr">import</span> <span class="nn">Counter</span>
+
+<span class="kr">type</span> <span class="n">alias</span> <span class="kt">Model</span> <span class="o">=</span>
+    <span class="p">{</span> <span class="n">widget</span> <span class="o">:</span> <span class="kt">Counter</span><span class="o">.</span><span class="kt">State</span>
+    <span class="p">,</span> <span class="n">value</span> <span class="o">:</span> <span class="kt">Maybe</span> <span class="kt">Int</span>
+    <span class="p">}</span>
+
+
+<span class="kr">type</span> <span class="kt">Msg</span>
+    <span class="o">=</span> <span class="kt">CounterChanged</span> <span class="kt">Counter</span><span class="o">.</span><span class="kt">State</span>
+
+
+<span class="n">init</span> <span class="o">:</span> <span class="nb">()</span> <span class="o">-&gt;</span> <span class="p">(</span> <span class="kt">Model</span><span class="p">,</span> <span class="kt">Cmd</span> <span class="kt">Msg</span> <span class="p">)</span>
+<span class="n">init</span> <span class="kr">_</span> <span class="o">=</span>
+    <span class="p">(</span> <span class="p">{</span> <span class="n">widget</span> <span class="o">=</span> <span class="kt">Counter</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="kt">Nothing</span> <span class="p">}</span>
+    <span class="p">,</span> <span class="kt">Cmd</span><span class="o">.</span><span class="n">none</span>
+    <span class="p">)</span>
+
+
+<span class="n">update</span> <span class="o">:</span> <span class="kt">Msg</span> <span class="o">-&gt;</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="p">(</span> <span class="kt">Model</span><span class="p">,</span> <span class="kt">Cmd</span> <span class="kt">Msg</span> <span class="p">)</span>
+<span class="n">update</span> <span class="n">msg</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">msg</span> <span class="kr">of</span>
+        <span class="kt">CounterChanged</span> <span class="n">state</span> <span class="o">-&gt;</span>
+            <span class="p">(</span> <span class="p">{</span> <span class="n">model</span> <span class="o">|</span> <span class="n">counter</span> <span class="o">=</span> <span class="n">state</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="kt">Counter</span><span class="o">.</span><span class="n">getValue</span> <span class="n">state</span> <span class="p">}</span>
+            <span class="p">,</span> <span class="kt">Cmd</span><span class="o">.</span><span class="n">none</span>
+            <span class="p">)</span>
+
+
+<span class="n">view</span> <span class="o">:</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="kt">Msg</span>
+<span class="n">view</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="kt">[]</span>
+        <span class="p">[</span> <span class="kt">Counter</span><span class="o">.</span><span class="n">view</span> <span class="kt">CounterChanged</span> <span class="n">model</span><span class="o">.</span><span class="n">widget</span>
+        <span class="p">,</span> <span class="n">text</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">fromInt</span> <span class="n">model</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="p">]</span>
+</code></pre></div></div>
+
+<p>Notice how our <code class="highlighter-rouge">update</code> function is dramatically simpler to write and to understand. Also, no need to import (and rely) a lot from the package module, which makes it <strong>both easier to consume &amp; maintain</strong> thanks to to the opaque <code class="highlighter-rouge">State</code> type encapsulating implementation details.</p>
+
+<p>Of course a counter wouldn’t be worth creating a package for it, though this may highlight the concept better. Don’t hesitate reading <em>elm-daterange-picker</em>’s <a href="https://github.com/allo-media/elm-daterange-picker/blob/master/src/DateRangePicker.elm">source code</a> and <a href="https://github.com/allo-media/elm-daterange-picker/blob/master/demo/Main.elm">demo code</a> to look at a real world application of this design principle.</p>
+
+
+  </div>
+
+  
+
+  <a class="u-url" href="/elm/2019/07/16/stateful-components-in-elm.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Allo-Media Technical Blog</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li>
+            
+              Allo-Media Technical Blog
+            
+            </li>
+            <li>
+              <a href="https://www.allo-media.net/about/jobs/">We're hiring!</a>
+            </li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/allo-media"><span class="icon icon--github"><svg viewBox="0 0 16 16" width="16px" height="16px"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg>
+</span><span class="username">allo-media</span></a>
+
+          </li>
+          
+
+          
+          <li>
+            <a href="https://twitter.com/allomedia"><span class="icon icon--twitter"><svg viewBox="0 0 16 16" width="16px" height="16px"><path fill="#828282" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27 c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767 c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206 C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271 c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469 c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/></svg>
+</span><span class="username">allomedia</span></a>
+
+          </li>
+          
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p>Random things we&#39;re discovering &amp; learning at Allo-Media.</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
