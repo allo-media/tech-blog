@@ -13,7 +13,7 @@ We recently published [elm-daterange-picker], a date range picker written in [El
 
 ![app demo](/assets/2019-07-16-stateful-components-in-elm/demo.gif)
 
-Many component/widget-oriented Elm packages feature a rather raw [TEA] API, namely exposing `Model`, `Msg(..)`, `init`, `update` and `view`, so you can basically import what defines an actual application and embed it within your own application.   
+Many component/widget-oriented Elm packages feature a rather raw [Elm Architecture (TEA)] API, directly exposing `Model`, `Msg(..)`, `init`, `update` and `view`, so you can basically import what defines an actual application and embed it within your own application.   
 
 ![funny meme](/assets/2019-07-16-stateful-components-in-elm/meme.jpg)
 
@@ -79,7 +79,7 @@ This certainly works, but let's be frank for a minute and admit this is super ve
 
 There's another way, which [Evan] explained in his now deprecated [elm-sortable-table] package. Among the many good points he has, one idea stroke me as brilliantly simple yet effective to simplify such stateful view components API design: **state updates can be managed right from event handlers**.
 
-Let's imagine a simple counter; what if when clicking the *increment* button, instead of calling `onClick` with some `Increment` message, we would call a generic one with the new counter state updated accordingly?
+Let's imagine a simple counter; what if when clicking the *increment* button, instead of calling `onClick` with some `Increment` message, we would call **a user-provided one** with the new counter state updated accordingly?
 
 ```haskell
 -- Widget.elm
@@ -105,6 +105,8 @@ view toMsg (State value) =
 So for instance, to use this `Counter` component in your own application, you just have to write this:
 
 ```haskell
+import Counter
+
 type alias Model =
     { widget : Counter.State
     , value : Maybe Int
@@ -144,10 +146,10 @@ Notice how our `update` function is dramatically simpler to write, and to unders
 Of course a counter wouldn't be worth creating a package for it, though this may highlight the concept better. Don't hesitate reading *elm-daterange-picker*'s [source code] and [demo code] to look at a real world application of this design principle.
 
 [Elm]: https://elm-lang.org/
+[Elm Architecture (TEA)]: https://guide.elm-lang.org/architecture/
 [Evan]: https://github.com/evancz/
 [demo code]: https://github.com/allo-media/elm-daterange-picker/blob/master/demo/Main.elm
 [elm-daterange-picker]: https://package.elm-lang.org/packages/allo-media/elm-daterange-picker/latest/
 [elm-sortable-table]: https://github.com/evancz/elm-sortable-table#about-api-design
 [opaque type]: https://medium.com/@ckoster22/advanced-types-in-elm-opaque-types-ec5ec3b84ed2
 [source code]: https://github.com/allo-media/elm-daterange-picker/blob/master/src/DateRangePicker.elm
-[TEA]: https://guide.elm-lang.org/architecture/
