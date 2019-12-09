@@ -190,9 +190,9 @@ GET /search-perco/_search
 }
 ```
 
-You should care about optimizing text analysis during percolate time as suggested by the docs (https://www.elastic.co/guide/en/elasticsearch/reference/current/percolator.html#_optimizing_query_time_text_analysis).
+You should care about optimizing text analysis during percolate time as suggested by the docs [Percolator optimization](https://www.elastic.co/guide/en/elasticsearch/reference/current/percolator.html#_optimizing_query_time_text_analysis).
 
 Elasticsearch documentation:
 
-- https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-percolate-query.html
-- https://www.elastic.co/guide/en/elasticsearch/reference/current/percolator.html
+- [Percolate query](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-percolate-query.html)
+- [ElasticSearch Percolator](https://www.elastic.co/guide/en/elasticsearch/reference/current/percolator.html)
