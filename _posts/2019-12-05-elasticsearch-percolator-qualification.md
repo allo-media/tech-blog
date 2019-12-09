@@ -11,7 +11,7 @@ Currently at Allo-Media, we use Elasticsearch in its general workflow which is t
 
 The percolator feature from Elasticsearch allows to make a reverse search. We store search queries as documents in its own index, and then we can percolate new call documents and retrieve what search queries match. One use case to use the percolator is document classification.
 
-For example, say that we want to tag with `Check sent` all documents mentionning that the user has already sent a bank check. We would have the following search query: 
+For example, say that we want to tag with `Check sent` all documents mentioning that the user has already sent a bank check. We would have the following search query: 
 ```
 ("I've sent" | "I've already sent") ("check")
 ```
