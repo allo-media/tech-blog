@@ -174,7 +174,7 @@ Elasticsearch providing the following response :
 }
 ```
 
-So here we see that our call document matched the search query tagged `Check sent`. We can the highlighter to highlight the terms that have matched from the search query documents. The field `_percolator_document_slot` is useful when we send several documents to `documents` field of the percolate query. And `max_score` and `_score` as usual give you the relevance score of matched documents. You can disable the score computing when using the percolate query using a filter context.
+So here we see that our call document matched the search query tagged `Check sent`. We can use the highlighter to highlight the terms that have matched from the search query documents. The field `_percolator_document_slot` is useful when we send several documents to `documents` field of the percolate query. And `max_score` and `_score` as usual give you the relevance score of matched documents. You can disable the score computing when using the percolate query using a filter context.
 
 We can also percolate existing documents by providing the index where they are stored, and their ids :
 ```
