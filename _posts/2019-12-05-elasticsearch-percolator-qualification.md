@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "ElasticSearch Percolator Use Case for Document Classification"
-excerpt: ""
+excerpt: "Let's try a use case of document classification with ElasticSearch Percolator."
 date:   2019-12-05 12:00:00 +0100
 categories: python
 tags: python elasticsearch percolator
