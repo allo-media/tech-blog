@@ -1,22 +1,22 @@
 ---
 layout: post
-title:  "Elasticsearch percolator use case for document classification"
+title:  "ElasticSearch Percolator Use Case for Document Classification"
 excerpt: ""
 date:   2019-12-05 12:00:00 +0100
 categories: python
 tags: python elasticsearch percolator
 ---
 
-Currently at Allo-Media, we are using Elasticsearch in its general workflow which is to create an index and store documents holding our calls metadata, and then allowing to search through these documents given some business criteria like : "Give me all calls from client Acme, where the customer speaks about the french strike".
+Currently at Allo-Media, we use Elasticsearch in its general workflow which is to create an index and store documents holding our phone call audio transcripts metadata, and then allowing to search through these documents given some business criteria like: "Give me all phone calls from client Acme, where the customer speaks about the French strike".
 
 The percolator feature from Elasticsearch allows to make a reverse search. We store search queries as documents in its own index, and then we can percolate new call documents and retrieve what search queries match. One use case to use the percolator is document classification.
 
-For example, say that we want to tag with `Check sent` all calls mentionning that the user has already sent a bank check. We would have the following search query : 
+For example, say that we want to tag with `Check sent` all documents mentionning that the user has already sent a bank check. We would have the following search query: 
 ```
 ("I've sent" | "I've already sent") ("check")
 ```
 
-So first, we need to create an index to store the search queries with the following mapping : 
+So first, we need to create an index to store the search queries with the following mapping: 
 ```
 PUT /search-perco
 {
@@ -42,10 +42,10 @@ PUT /search-perco
 ```
 
 - The `tag_*` fields are used for document classification
-- The `query` field of type `percolator` is used to index the search query documents, storing a query DSL in json
+- The `query` field of type `percolator` is used to index the search query documents, storing a [query DSL](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html) in JSON
 - The `content` field is used to preprocess the percolating documents.
 
-Once the index is created, we can now store our search query documents, like the following one : 
+Once the index is created, we can now store our search query documents, like the following one: 
 ```
 PUT /search-perco/_doc/1?refresh
 {
@@ -69,7 +69,7 @@ PUT /search-perco/_doc/1?refresh
 }
 ```
 
-And if we search through this index, we will retrieve our newly added search query document : 
+And if we search through this index, we will retrieve our newly added search query document: 
 ```
 GET search-perco/_search
 {
@@ -105,7 +105,7 @@ GET search-perco/_search
 }
 ```
 
-Now it's time to percolate call documents via the percolate query : 
+Now it's time to percolate call documents via the percolate query: 
 ```
 GET /search-perco/_search
 {
@@ -134,7 +134,7 @@ GET /search-perco/_search
 }
 ```
 
-Elasticsearch providing the following response : 
+Elasticsearch providing the following response: 
 ```
 {
   "took": 37,
@@ -174,9 +174,9 @@ Elasticsearch providing the following response :
 }
 ```
 
-So here we see that our call document matched the search query tagged `Check sent`. We can use the highlighter to highlight the terms that have matched from the search query documents. The field `_percolator_document_slot` is useful when we send several documents to `documents` field of the percolate query. And `max_score` and `_score` as usual give you the relevance score of matched documents. You can disable the score computing when using the percolate query using a filter context.
+So here we see that our call document matched the search query tagged `Check sent`. We can use the highlighter to highlight the terms that have matched from the search query documents. The field `_percolator_document_slot` is useful when we send several documents to the `documents` field of the percolate query. And `max_score` and `_score` gives you the relevance score of matched documents. You can disable the score computing when using the percolate query using a [filter context](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-filter-context.html#filter-context).
 
-We can also percolate existing documents by providing the index where they are stored, and their ids :
+We can also percolate existing documents by providing the index where they are stored, and their ids:
 ```
 GET /search-perco/_search
 {
@@ -192,7 +192,7 @@ GET /search-perco/_search
 
 You should care about optimizing text analysis during percolate time as suggested by the docs (https://www.elastic.co/guide/en/elasticsearch/reference/current/percolator.html#_optimizing_query_time_text_analysis).
 
-Elasticsearch documentation :
+Elasticsearch documentation:
 
 - https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-percolate-query.html
 - https://www.elastic.co/guide/en/elasticsearch/reference/current/percolator.html
