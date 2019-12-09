@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Begin Jekyll SEO tag v2.5.0 -->
 <title>Reduce and the Ferris wheel metaphor | Allo-Media Technical Blog</title>
-<meta name="generator" content="Jekyll v3.7.4" />
+<meta name="generator" content="Jekyll v3.8.5" />
 <meta property="og:title" content="Reduce and the Ferris wheel metaphor" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="I recently had to introduce some Elm concepts to a coworker who had some experience with React and Redux. One of these concepts was List.foldl, a reduction function which exists in many languages, specifically as Array#reduce in JavaScript." />
@@ -16,7 +16,7 @@
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2018-01-26T17:53:00+01:00" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","headline":"Reduce and the Ferris wheel metaphor","dateModified":"2018-01-26T17:53:00+01:00","datePublished":"2018-01-26T17:53:00+01:00","mainEntityOfPage":{"@type":"WebPage","@id":"/learning/elm/2018/01/26/reduce-and-the-ferris-wheel-metaphor.html"},"url":"/learning/elm/2018/01/26/reduce-and-the-ferris-wheel-metaphor.html","description":"I recently had to introduce some Elm concepts to a coworker who had some experience with React and Redux. One of these concepts was List.foldl, a reduction function which exists in many languages, specifically as Array#reduce in JavaScript.","@context":"http://schema.org"}</script>
+{"headline":"Reduce and the Ferris wheel metaphor","dateModified":"2018-01-26T17:53:00+01:00","datePublished":"2018-01-26T17:53:00+01:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"/learning/elm/2018/01/26/reduce-and-the-ferris-wheel-metaphor.html"},"url":"/learning/elm/2018/01/26/reduce-and-the-ferris-wheel-metaphor.html","description":"I recently had to introduce some Elm concepts to a coworker who had some experience with React and Redux. One of these concepts was List.foldl, a reduction function which exists in many languages, specifically as Array#reduce in JavaScript.","@context":"http://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
   <link rel="stylesheet" href="/assets/main.css">
@@ -58,6 +58,12 @@
             
             
             <a class="page-link" href="/about/">About</a>
+            
+          
+            
+            
+          
+            
             
           
             
@@ -153,10 +159,10 @@
 
 <figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">function</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">action</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">switch</span><span class="p">(</span><span class="nx">action</span><span class="p">.</span><span class="nx">type</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">case</span> <span class="s2">"EMPTY"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="dl">"</span><span class="s2">EMPTY</span><span class="dl">"</span><span class="p">:</span> <span class="p">{</span>
             <span class="k">return</span> <span class="nx">init</span>
         <span class="p">}</span>
-        <span class="k">case</span> <span class="s2">"ADD_WATER"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="dl">"</span><span class="s2">ADD_WATER</span><span class="dl">"</span><span class="p">:</span> <span class="p">{</span>
             <span class="k">return</span> <span class="p">{...</span><span class="nx">state</span><span class="p">,</span> <span class="na">water</span><span class="p">:</span> <span class="nx">state</span><span class="p">.</span><span class="nx">water</span> <span class="o">+</span> <span class="mi">1</span><span class="p">}</span>
         <span class="p">}</span>
     <span class="p">}</span>
@@ -167,21 +173,21 @@
 <figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="c1">// Step by step state building</span>
 <span class="kd">const</span> <span class="nx">init</span> <span class="o">=</span> <span class="p">{</span><span class="na">water</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
 <span class="kd">let</span> <span class="nx">state</span> <span class="o">=</span> <span class="nx">init</span>
-<span class="nx">state</span> <span class="o">=</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">})</span>
-<span class="nx">state</span> <span class="o">=</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"EMPTY"</span><span class="p">})</span>
-<span class="nx">state</span> <span class="o">=</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">})</span>
-<span class="nx">state</span> <span class="o">=</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">})</span>
+<span class="nx">state</span> <span class="o">=</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="dl">"</span><span class="s2">ADD_WATER</span><span class="dl">"</span><span class="p">})</span>
+<span class="nx">state</span> <span class="o">=</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="dl">"</span><span class="s2">EMPTY</span><span class="dl">"</span><span class="p">})</span>
+<span class="nx">state</span> <span class="o">=</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="dl">"</span><span class="s2">ADD_WATER</span><span class="dl">"</span><span class="p">})</span>
+<span class="nx">state</span> <span class="o">=</span> <span class="nx">reducer</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="dl">"</span><span class="s2">ADD_WATER</span><span class="dl">"</span><span class="p">})</span>
 
 <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span> <span class="c1">// {water: 2}</span></code></pre></figure>
 
-<p>Or using <code class="highlighter-rouge">Array#reduce</code>:</p>
+<p>Or using <code class="language-plaintext highlighter-rouge">Array#reduce</code>:</p>
 
 <figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="c1">// Using Array#reduce and an array of actions</span>
 <span class="kd">const</span> <span class="nx">actions</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">},</span>
-    <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"EMPTY"</span><span class="p">},</span>
-    <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">},</span>
-    <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="s2">"ADD_WATER"</span><span class="p">},</span>
+    <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="dl">"</span><span class="s2">ADD_WATER</span><span class="dl">"</span><span class="p">},</span>
+    <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="dl">"</span><span class="s2">EMPTY</span><span class="dl">"</span><span class="p">},</span>
+    <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="dl">"</span><span class="s2">ADD_WATER</span><span class="dl">"</span><span class="p">},</span>
+    <span class="p">{</span><span class="na">type</span><span class="p">:</span> <span class="dl">"</span><span class="s2">ADD_WATER</span><span class="dl">"</span><span class="p">},</span>
 <span class="p">]</span>
 
 <span class="kd">const</span> <span class="nx">init</span> <span class="o">=</span> <span class="p">{</span><span class="na">water</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
@@ -191,34 +197,34 @@
 <p>So I could use the Ferris wheel metaphor again:</p>
 
 <ul>
-  <li><code class="highlighter-rouge">state</code> represents the state of the wheel basket (and the quantity of water in it)</li>
-  <li><code class="highlighter-rouge">init</code> is the initial state of the wheel basket (it contains no water yet)</li>
-  <li><code class="highlighter-rouge">actions</code> are the list of operations to proceed each time the basket reaches the ground again (here, filling the basket with water from the lake, sometimes emptying the basket)</li>
+  <li><code class="language-plaintext highlighter-rouge">state</code> represents the state of the wheel basket (and the quantity of water in it)</li>
+  <li><code class="language-plaintext highlighter-rouge">init</code> is the initial state of the wheel basket (it contains no water yet)</li>
+  <li><code class="language-plaintext highlighter-rouge">actions</code> are the list of operations to proceed each time the basket reaches the ground again (here, filling the basket with water from the lake, sometimes emptying the basket)</li>
 </ul>
 
 <p>For the records, yes my coworker was still very oddly looking at me.</p>
 
-<p>We moved on and decided to reimplement the same thing in Elm, using <code class="highlighter-rouge">foldl</code>. Its type signature is:</p>
+<p>We moved on and decided to reimplement the same thing in Elm, using <code class="language-plaintext highlighter-rouge">foldl</code>. Its type signature is:</p>
 
 <figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">foldl</span> <span class="o">:</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="kt">List</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span></code></pre></figure>
 
 <p>Wow, that looks complicated, especially when you’re new to Elm.</p>
 
-<p>In Elm, type signatures separate each function arguments and the return value with an arrow (<code style="white-space: nowrap">-&gt;</code>); so, let’s decompose the one for <code class="highlighter-rouge">foldl</code>:</p>
+<p>In Elm, type signatures separate each function arguments and the return value with an arrow (<code style="white-space: nowrap">-&gt;</code>); so, let’s decompose the one for <code class="language-plaintext highlighter-rouge">foldl</code>:</p>
 
 <ul>
-  <li><code class="highlighter-rouge">(a -&gt; b -&gt; b)</code>, the first argument, means we want a function, taking two arguments typed <code class="highlighter-rouge">a</code> and <code class="highlighter-rouge">b</code> and returning a <code class="highlighter-rouge">b</code>. That sounds a lot like our <code class="highlighter-rouge">reducer</code> function in JavaScript! If so, <code class="highlighter-rouge">a</code> is an action, and <code class="highlighter-rouge">b</code> a state.</li>
-  <li>the next argument, typed as <code class="highlighter-rouge">b</code>, is the initial state we start reducing our list of actions from.</li>
-  <li>the next argument, <code class="highlighter-rouge">List a</code>, is our list of actions.</li>
-  <li>And all this must return a <code class="highlighter-rouge">b</code>, hence a new state. We have the exact definition of what we’re after.</li>
+  <li><code class="language-plaintext highlighter-rouge">(a -&gt; b -&gt; b)</code>, the first argument, means we want a function, taking two arguments typed <code class="language-plaintext highlighter-rouge">a</code> and <code class="language-plaintext highlighter-rouge">b</code> and returning a <code class="language-plaintext highlighter-rouge">b</code>. That sounds a lot like our <code class="language-plaintext highlighter-rouge">reducer</code> function in JavaScript! If so, <code class="language-plaintext highlighter-rouge">a</code> is an action, and <code class="language-plaintext highlighter-rouge">b</code> a state.</li>
+  <li>the next argument, typed as <code class="language-plaintext highlighter-rouge">b</code>, is the initial state we start reducing our list of actions from.</li>
+  <li>the next argument, <code class="language-plaintext highlighter-rouge">List a</code>, is our list of actions.</li>
+  <li>And all this must return a <code class="language-plaintext highlighter-rouge">b</code>, hence a new state. We have the exact definition of what we’re after.</li>
 </ul>
 
-<p>Actually our own use of <code class="highlighter-rouge">foldl</code> would have been much more obvious if we initially saw this, replacing <code class="highlighter-rouge">a</code> by <code class="highlighter-rouge">Action</code> and <code class="highlighter-rouge">b</code> by <code class="highlighter-rouge">State</code>:</p>
+<p>Actually our own use of <code class="language-plaintext highlighter-rouge">foldl</code> would have been much more obvious if we initially saw this, replacing <code class="language-plaintext highlighter-rouge">a</code> by <code class="language-plaintext highlighter-rouge">Action</code> and <code class="language-plaintext highlighter-rouge">b</code> by <code class="language-plaintext highlighter-rouge">State</code>:</p>
 
 <figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">foldl</span> <span class="o">:</span> <span class="p">(</span><span class="kt">Action</span> <span class="o">-&gt;</span> <span class="kt">State</span> <span class="o">-&gt;</span> <span class="kt">State</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">State</span> <span class="o">-&gt;</span> <span class="kt">List</span> <span class="kt">Action</span> <span class="o">-&gt;</span> <span class="kt">State</span></code></pre></figure>
 
 <blockquote>
-  <p>Note: if you’re still struggling with these <code class="highlighter-rouge">a</code> and <code class="highlighter-rouge">b</code>s, you should probably read a little about <a href="https://guide.elm-lang.org/types/union_types.html#generic-data-structures">Generic Types</a>.</p>
+  <p>Note: if you’re still struggling with these <code class="language-plaintext highlighter-rouge">a</code> and <code class="language-plaintext highlighter-rouge">b</code>s, you should probably read a little about <a href="https://guide.elm-lang.org/types/union_types.html#generic-data-structures">Generic Types</a>.</p>
 </blockquote>
 
 <p>Our resulting minimalistic implementation was:</p>
@@ -270,7 +276,7 @@
 
 <p>That was it, it was more obvious how to map things my coworker already knew to something new to him, while in fact it was actually exactly the same thing, expressed slightly differently from a syntax perspective.</p>
 
-<p>We also expanded that the <a href="https://guide.elm-lang.org/architecture/">Elm Architecture</a> and the traditional <code class="highlighter-rouge">update</code> function was basically a projection of <code class="highlighter-rouge">foldl</code>, <code class="highlighter-rouge">Action</code> being usually named <em>Msg</em> and <code class="highlighter-rouge">State</code> <em>Model</em>.</p>
+<p>We also expanded that the <a href="https://guide.elm-lang.org/architecture/">Elm Architecture</a> and the traditional <code class="language-plaintext highlighter-rouge">update</code> function was basically a projection of <code class="language-plaintext highlighter-rouge">foldl</code>, <code class="language-plaintext highlighter-rouge">Action</code> being usually named <em>Msg</em> and <code class="language-plaintext highlighter-rouge">State</code> <em>Model</em>.</p>
 
 <p>The funny thing being, Redux design itself was initially inspired by the Elm Architecture!</p>
 

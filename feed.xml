@@ -1,10 +1,195 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.7.4">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2019-07-16T15:20:29+02:00</updated><id>/</id><title type="html">Allo-Media Technical Blog</title><subtitle>Random things we're discovering &amp; learning at Allo-Media.</subtitle><entry><title type="html">Stateful components in Elm</title><link href="/elm/2019/07/16/stateful-components-in-elm.html" rel="alternate" type="text/html" title="Stateful components in Elm" /><published>2019-07-16T11:00:00+02:00</published><updated>2019-07-16T11:00:00+02:00</updated><id>/elm/2019/07/16/stateful-components-in-elm</id><content type="html" xml:base="/elm/2019/07/16/stateful-components-in-elm.html">&lt;p&gt;It’s often claimed that &lt;a href=&quot;https://elm-lang.org/&quot;&gt;Elm&lt;/a&gt; developers should avoid thinking their views as stateful components. While this is indeed a general best design practice, sometimes you may want to make your views reusable (eg. across pages or projects), and if they come with a state… you end up copying and pasting a lot of things.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2019-12-09T12:22:59+01:00</updated><id>/feed.xml</id><title type="html">Allo-Media Technical Blog</title><subtitle>Random things we're discovering &amp; learning at Allo-Media.</subtitle><entry><title type="html">ElasticSearch Percolator Use Case for Document Classification</title><link href="/python/2019/12/05/elasticsearch-percolator-qualification.html" rel="alternate" type="text/html" title="ElasticSearch Percolator Use Case for Document Classification" /><published>2019-12-05T12:00:00+01:00</published><updated>2019-12-05T12:00:00+01:00</updated><id>/python/2019/12/05/elasticsearch-percolator-qualification</id><content type="html" xml:base="/python/2019/12/05/elasticsearch-percolator-qualification.html">&lt;p&gt;Currently at Allo-Media, we use Elasticsearch in its general workflow which is to create an index and store documents holding our phone call audio transcripts metadata, and then allowing to search through these documents given some business criteria like: “Give me all phone calls from client Acme, where the customer speaks about the French strike”.&lt;/p&gt;
+
+&lt;p&gt;The percolator feature from Elasticsearch allows to make a reverse search. We store search queries as documents in its own index, and then we can percolate new call documents and retrieve what search queries match. One use case to use the percolator is document classification.&lt;/p&gt;
+
+&lt;p&gt;For example, say that we want to tag with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Check sent&lt;/code&gt; all documents mentioning that the user has already sent a bank check. We would have the following search query:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;(&quot;I've sent&quot; | &quot;I've already sent&quot;) (&quot;check&quot;)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;So first, we need to create an index to store the search queries with the following mapping:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;PUT /search-perco
+{
+  &quot;mappings&quot;: {
+    &quot;_doc&quot;: {
+      &quot;properties&quot;: {
+        &quot;tag_uuid&quot;: {
+          &quot;type&quot;: &quot;text&quot;
+        },
+        &quot;tag_name&quot;: {
+          &quot;type&quot;: &quot;text&quot;
+        },
+        &quot;content&quot;: {
+          &quot;type&quot;: &quot;text&quot;
+        },
+        &quot;query&quot;: {
+          &quot;type&quot;: &quot;percolator&quot;
+        }
+      }
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tag_*&lt;/code&gt; fields are used for document classification&lt;/li&gt;
+  &lt;li&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;query&lt;/code&gt; field of type &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;percolator&lt;/code&gt; is used to index the search query documents, storing a &lt;a href=&quot;https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html&quot;&gt;query DSL&lt;/a&gt; in JSON&lt;/li&gt;
+  &lt;li&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;content&lt;/code&gt; field is used to preprocess the percolating documents.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Once the index is created, we can now store our search query documents, like the following one:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;PUT /search-perco/_doc/1?refresh
+{
+  &quot;query&quot;: {
+      &quot;bool&quot;: {
+          &quot;must&quot;: [
+              {
+                  &quot;simple_query_string&quot;: {
+                      &quot;query&quot;: &quot;(&quot;I've sent&quot; | &quot;I've already sent&quot;) (&quot;check&quot;)&quot;,
+                      &quot;fields&quot;: [
+                          &quot;content&quot;
+                      ],
+                      &quot;default_operator&quot;: &quot;and&quot;
+                  }
+              }
+          ]
+      }
+  },
+  &quot;tag_uuid&quot;: &quot;2f86ad85-4c09-4ef3-bb6e-100d129018e9&quot;,
+  &quot;tag_name&quot;: &quot;Check sent&quot;,
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;And if we search through this index, we will retrieve our newly added search query document:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;GET search-perco/_search
+{
+  &quot;query&quot;: {&quot;match_all&quot;: {}}
+}
+
+{
+  &quot;took&quot;: 1,
+  &quot;timed_out&quot;: false,
+  &quot;_shards&quot;: {
+    &quot;total&quot;: 5,
+    &quot;successful&quot;: 5,
+    &quot;skipped&quot;: 0,
+    &quot;failed&quot;: 0
+  },
+  &quot;hits&quot;: {
+    &quot;total&quot;: 1,
+    &quot;max_score&quot;: 1,
+    &quot;hits&quot;: [
+      {
+        &quot;_index&quot;: &quot;search-perco&quot;,
+        &quot;_type&quot;: &quot;_doc&quot;,
+        &quot;_id&quot;: &quot;1&quot;,
+        &quot;_score&quot;: 1,
+        &quot;_source&quot;: {
+          &quot;query&quot;: ...
+          &quot;tag_uuid&quot;: &quot;2f86ad85-4c09-4ef3-bb6e-100d129018e9&quot;,
+          &quot;tag_name&quot;: &quot;Check sent&quot;,
+        }
+      }
+    ]
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now it’s time to percolate call documents via the percolate query:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;GET /search-perco/_search
+{
+  &quot;_source&quot;: [
+    &quot;tag_uuid&quot;,
+    &quot;tag_name&quot;
+  ],
+  &quot;query&quot;: {
+    &quot;percolate&quot;: {
+      &quot;field&quot;: &quot;query&quot;,
+      &quot;documents&quot;: [{`
+        &quot;unique_id&quot;: &quot;2f86ad85-4c09-4ef3-bb6e-100d129018e7&quot;,
+        &quot;timestamp&quot;: &quot;2018-01-02T18:13:30+00:00&quot;,
+        &quot;duration&quot;: 322,
+        &quot;transcribed&quot;: true,
+        &quot;client_name&quot;: &quot;Acme&quot;,
+        &quot;content&quot;: &quot;I've already sent to you a bank check last week...&quot;
+      }]
+    }
+  },
+  &quot;highlight&quot;: {
+    &quot;fields&quot;: {
+      &quot;content&quot;: {}
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Elasticsearch providing the following response:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;{
+  &quot;took&quot;: 37,
+  &quot;timed_out&quot;: false,
+  &quot;_shards&quot;: {
+    &quot;total&quot;: 5,
+    &quot;successful&quot;: 5,
+    &quot;skipped&quot;: 0,
+    &quot;failed&quot;: 0
+  },
+  &quot;hits&quot;: {
+    &quot;total&quot;: 1,
+    &quot;max_score&quot;: 0.8630463,
+    &quot;hits&quot;: [
+      {
+        &quot;_index&quot;: &quot;search-perco&quot;,
+        &quot;_type&quot;: &quot;_doc&quot;,
+        &quot;_id&quot;: &quot;1&quot;,
+        &quot;_score&quot;: 0.8630463,
+        &quot;_source&quot;: {
+          &quot;tag_name&quot;: &quot;Check sent&quot;,
+          &quot;tag_uuid&quot;: &quot;2f86ad85-4c09-4ef3-bb6e-100d129018e9&quot;
+        },
+        &quot;fields&quot;: {
+          &quot;_percolator_document_slot&quot;: [
+            0
+          ]
+        },
+        &quot;highlight&quot;: {
+          &quot;content&quot;: [
+            &quot;&amp;lt;em&amp;gt;I've already sent&amp;lt;/em&amp;gt; to you a bank &amp;lt;em&amp;gt;check&amp;lt;/em&amp;gt; last week...&quot;
+          ]
+        }
+      }
+    ]
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;So here we see that our call document matched the search query tagged &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Check sent&lt;/code&gt;. We can use the highlighter to highlight the terms that have matched from the search query documents. The field &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;_percolator_document_slot&lt;/code&gt; is useful when we send several documents to the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;documents&lt;/code&gt; field of the percolate query. And &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;max_score&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;_score&lt;/code&gt; gives you the relevance score of matched documents. You can disable the score computing when using the percolate query using a &lt;a href=&quot;https://www.elastic.co/guide/en/elasticsearch/reference/current/query-filter-context.html#filter-context&quot;&gt;filter context&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;We can also percolate existing documents by providing the index where they are stored, and their ids:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;GET /search-perco/_search
+{
+    &quot;query&quot; : {
+        &quot;percolate&quot; : {
+            &quot;field&quot;: &quot;query&quot;,
+            &quot;index&quot; : &quot;call-index&quot;,
+            &quot;id&quot; : &quot;2&quot;
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;You should care about optimizing text analysis during percolate time as suggested by the docs &lt;a href=&quot;https://www.elastic.co/guide/en/elasticsearch/reference/current/percolator.html#_optimizing_query_time_text_analysis&quot;&gt;Percolator optimization&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Elasticsearch documentation:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-percolate-query.html&quot;&gt;Percolate query&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.elastic.co/guide/en/elasticsearch/reference/current/percolator.html&quot;&gt;ElasticSearch Percolator&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><author><name></name></author><category term="python" /><category term="elasticsearch" /><category term="percolator" /><summary type="html">Let's try a use case of document classification with ElasticSearch Percolator.</summary></entry><entry><title type="html">Stateful components in Elm</title><link href="/elm/2019/07/16/stateful-components-in-elm.html" rel="alternate" type="text/html" title="Stateful components in Elm" /><published>2019-07-16T11:00:00+02:00</published><updated>2019-07-16T11:00:00+02:00</updated><id>/elm/2019/07/16/stateful-components-in-elm</id><content type="html" xml:base="/elm/2019/07/16/stateful-components-in-elm.html">&lt;p&gt;It’s often claimed that &lt;a href=&quot;https://elm-lang.org/&quot;&gt;Elm&lt;/a&gt; developers should avoid thinking their views as stateful components. While this is indeed a general best design practice, sometimes you may want to make your views reusable (eg. across pages or projects), and if they come with a state… you end up copying and pasting a lot of things.&lt;/p&gt;
 
 &lt;p&gt;We recently published &lt;a href=&quot;https://package.elm-lang.org/packages/allo-media/elm-daterange-picker/latest/&quot;&gt;elm-daterange-picker&lt;/a&gt;, a date range picker written in &lt;a href=&quot;https://elm-lang.org/&quot;&gt;Elm&lt;/a&gt;. It was the perfect occasion to investigate what a reasonable API for a reusable stateful view component would look like.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/2019-07-16-stateful-components-in-elm/demo.gif&quot; alt=&quot;app demo&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;Many component/widget-oriented Elm packages feature a rather raw &lt;a href=&quot;https://guide.elm-lang.org/architecture/&quot;&gt;Elm Architecture (TEA)&lt;/a&gt; API, directly exposing &lt;code class=&quot;highlighter-rouge&quot;&gt;Model&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;Msg(..)&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;init&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;update&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;view&lt;/code&gt;, so you can basically import what defines an actual application and embed it within your own application.&lt;/p&gt;
+&lt;p&gt;Many component/widget-oriented Elm packages feature a rather raw &lt;a href=&quot;https://guide.elm-lang.org/architecture/&quot;&gt;Elm Architecture (TEA)&lt;/a&gt; API, directly exposing &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Model&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Msg(..)&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;init&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;update&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;view&lt;/code&gt;, so you can basically import what defines an actual application and embed it within your own application.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/2019-07-16-stateful-components-in-elm/meme.jpg&quot; alt=&quot;funny meme&quot; /&gt;&lt;/p&gt;
 
@@ -64,9 +249,9 @@
 &lt;p&gt;This certainly works, but let’s be frank for a minute and admit this is super verbose and not very developer friendly:&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;You need to &lt;code class=&quot;highlighter-rouge&quot;&gt;Cmd.map&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;Html.map&lt;/code&gt; here and there&lt;/li&gt;
-  &lt;li&gt;You need to pattern match &lt;code class=&quot;highlighter-rouge&quot;&gt;Counter.Msg&lt;/code&gt; to intercept whatever event interests you…&lt;/li&gt;
-  &lt;li&gt;… meaning &lt;code class=&quot;highlighter-rouge&quot;&gt;Counter&lt;/code&gt; exposes all &lt;code class=&quot;highlighter-rouge&quot;&gt;Msg&lt;/code&gt;s, which are &lt;strong&gt;implementation details&lt;/strong&gt; you now rely on.&lt;/li&gt;
+  &lt;li&gt;You need to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Cmd.map&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Html.map&lt;/code&gt; here and there&lt;/li&gt;
+  &lt;li&gt;You need to pattern match &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Counter.Msg&lt;/code&gt; to intercept whatever event interests you…&lt;/li&gt;
+  &lt;li&gt;… meaning &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Counter&lt;/code&gt; exposes all &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Msg&lt;/code&gt;s, which are &lt;strong&gt;implementation details&lt;/strong&gt; you now rely on.&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;There’s another way, which &lt;a href=&quot;https://github.com/evancz/&quot;&gt;Evan&lt;/a&gt; explained in his now deprecated &lt;a href=&quot;https://github.com/evancz/elm-sortable-table#about-api-design&quot;&gt;elm-sortable-table&lt;/a&gt; package. Among the many good points he has, one idea stroke me as brilliantly simple yet effective to simplify such stateful view components API design:&lt;/p&gt;
@@ -75,7 +260,7 @@
   &lt;p&gt;&lt;strong&gt;State updates can be managed right from event handlers!&lt;/strong&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;p&gt;Let’s imagine a simple counter; what if when clicking the &lt;em&gt;increment&lt;/em&gt; button, instead of calling &lt;code class=&quot;highlighter-rouge&quot;&gt;onClick&lt;/code&gt; with some &lt;code class=&quot;highlighter-rouge&quot;&gt;Increment&lt;/code&gt; message, we would call &lt;strong&gt;a user-provided one&lt;/strong&gt; with the new counter state updated accordingly?&lt;/p&gt;
+&lt;p&gt;Let’s imagine a simple counter; what if when clicking the &lt;em&gt;increment&lt;/em&gt; button, instead of calling &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;onClick&lt;/code&gt; with some &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Increment&lt;/code&gt; message, we would call &lt;strong&gt;a user-provided one&lt;/strong&gt; with the new counter state updated accordingly?&lt;/p&gt;
 
 &lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;-- Counter.elm&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;view&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Html&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;
@@ -96,9 +281,9 @@
         &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;text&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;increment&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;Note that as we’re dealing with a counter state, we didn’t bother having anything else than a simple &lt;code class=&quot;highlighter-rouge&quot;&gt;Int&lt;/code&gt; for representing it. But you could of course have a record or anything you want.&lt;/p&gt;
+&lt;p&gt;Note that as we’re dealing with a counter state, we didn’t bother having anything else than a simple &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Int&lt;/code&gt; for representing it. But you could of course have a record or anything you want.&lt;/p&gt;
 
-&lt;p&gt;Handling internal state update could be just creating internal and unexposed &lt;code class=&quot;highlighter-rouge&quot;&gt;Msg&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;update&lt;/code&gt; functions:&lt;/p&gt;
+&lt;p&gt;Handling internal state update could be just creating internal and unexposed &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Msg&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;update&lt;/code&gt; functions:&lt;/p&gt;
 
 &lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;-- Counter.elm&lt;/span&gt;
 &lt;span class=&quot;kr&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;State&lt;/span&gt;
@@ -127,7 +312,7 @@
         &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;We should also expose helpers to retrieve (or set) values from the opaque &lt;code class=&quot;highlighter-rouge&quot;&gt;State&lt;/code&gt; type:&lt;/p&gt;
+&lt;p&gt;We should also expose helpers to retrieve (or set) values from the opaque &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;State&lt;/code&gt; type:&lt;/p&gt;
 
 &lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;-- Counter.elm&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;getValue&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;State&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;
@@ -135,7 +320,7 @@
     &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;So for instance, to use this &lt;code class=&quot;highlighter-rouge&quot;&gt;Counter&lt;/code&gt; component in your own application, you just have to write this:&lt;/p&gt;
+&lt;p&gt;So for instance, to use this &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Counter&lt;/code&gt; component in your own application, you just have to write this:&lt;/p&gt;
 
 &lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kr&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;Counter&lt;/span&gt;
 
@@ -173,7 +358,7 @@
         &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;Notice how our &lt;code class=&quot;highlighter-rouge&quot;&gt;update&lt;/code&gt; function is dramatically simpler to write and to understand. Also, no need to import (and rely) a lot from the package module, which makes it &lt;strong&gt;both easier to consume &amp;amp; maintain&lt;/strong&gt; thanks to to the opaque &lt;code class=&quot;highlighter-rouge&quot;&gt;State&lt;/code&gt; type encapsulating implementation details.&lt;/p&gt;
+&lt;p&gt;Notice how our &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;update&lt;/code&gt; function is dramatically simpler to write and to understand. Also, no need to import (and rely) a lot from the package module, which makes it &lt;strong&gt;both easier to consume &amp;amp; maintain&lt;/strong&gt; thanks to to the opaque &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;State&lt;/code&gt; type encapsulating implementation details.&lt;/p&gt;
 
 &lt;p&gt;Of course a counter wouldn’t be worth creating a package for it, though this may highlight the concept better. Don’t hesitate reading &lt;em&gt;elm-daterange-picker&lt;/em&gt;’s &lt;a href=&quot;https://github.com/allo-media/elm-daterange-picker/blob/master/src/DateRangePicker.elm&quot;&gt;source code&lt;/a&gt; and &lt;a href=&quot;https://github.com/allo-media/elm-daterange-picker/blob/master/demo/Main.elm&quot;&gt;demo code&lt;/a&gt; to look at a real world application of this design principle.&lt;/p&gt;</content><author><name></name></author><category term="elm" /><summary type="html">It's often claimed that Elm developers should avoid thinking their views as stateful components. While this is indeed a general best design practice, sometimes you may want to make your views reusable, and if they come with a state... you end up copying and pasting a lot of things.</summary></entry><entry><title type="html">Text2num version 1.0.0 released!</title><link href="/python/2018/10/02/release-of-text2num-1.html" rel="alternate" type="text/html" title="Text2num version 1.0.0 released!" /><published>2018-10-02T13:53:00+02:00</published><updated>2018-10-02T13:53:00+02:00</updated><id>/python/2018/10/02/release-of-text2num-1</id><content type="html" xml:base="/python/2018/10/02/release-of-text2num-1.html">&lt;p&gt;The output of speech-to-text systems are entirely made of words, without punctuation or capitalization. This makes visual scanning for numbers quite cumbersome,
 especially in transcriptions of real life dialogues as they also contain a lot of gibberish words — like « heu, ben, bah… » — and the syntax or
@@ -187,7 +372,7 @@ grammar is not always correct. Besides that, text mining tools and techniques of
 
 &lt;ul&gt;
   &lt;li&gt;It is unable to detect by itself the bounds of a number expression;&lt;/li&gt;
-  &lt;li&gt;its algorithm is weak (ex: &lt;code class=&quot;highlighter-rouge&quot;&gt;w2n.word_to_num('hundred five fifty') == 550&lt;/code&gt;);&lt;/li&gt;
+  &lt;li&gt;its algorithm is weak (ex: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;w2n.word_to_num('hundred five fifty') == 550&lt;/code&gt;);&lt;/li&gt;
   &lt;li&gt;French has some pecularities like « &lt;em&gt;quatre-vingt-dix-neuf&lt;/em&gt; » vs « &lt;em&gt;nonante-neuf&lt;/em&gt; ».&lt;/li&gt;
 &lt;/ul&gt;
 
@@ -235,7 +420,7 @@ to parse different flavors of french (e.g. &lt;em&gt;soixante-dix&lt;/em&gt; and
 &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alpha2digit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sentence&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;842 pommes, 25 chiens, 1003 chevaux, 12698 clous.
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;842 pommes, 25 chiens, 1003 chevaux, 12698 clous.
 95 vaut 95. On tolère l'absence de tirets avant les unités : 76 vaut 76.
 Nombres en série : 12 15 004 20 52 103 52 31.
 Ordinaux: 5ème 3ème 21ème 100ème 1230ème.
@@ -256,9 +441,91 @@ Décimaux: 12,99, 120,05 ; mais 60 02.
 
 &lt;p&gt;If you are interested in more details or want to contribute, you can check the sources on &lt;a href=&quot;https://github.com/allo-media/text2num&quot;&gt;GitHub&lt;/a&gt; and the &lt;a href=&quot;https://text2num.readthedocs.io/en/stable/contribute.html&quot;&gt;contribution guide&lt;/a&gt;.&lt;/p&gt;
 
-&lt;p&gt;If you just want to use it, it’s just a &lt;code class=&quot;highlighter-rouge&quot;&gt;pip install text2num&lt;/code&gt; away and the documentation is on &lt;a href=&quot;https://text2num.readthedocs.io/&quot;&gt;ReadTheDocs&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;If you just want to use it, it’s just a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pip install text2num&lt;/code&gt; away and the documentation is on &lt;a href=&quot;https://text2num.readthedocs.io/&quot;&gt;ReadTheDocs&lt;/a&gt;.&lt;/p&gt;
 
-&lt;p&gt;Enjoy!&lt;/p&gt;</content><author><name></name></author><category term="python" /><category term="NLP" /><summary type="html">There already existed some python packages to convert numbers written in English into Python numbers or their decimal digit representation, but there was nothing available for the French language. That's why we developed this library and shared it with the community.</summary></entry><entry><title type="html">Brace yourself data selection, industrialization is coming!</title><link href="/r&d/2018/03/22/industrialization-versus-data-selection.html" rel="alternate" type="text/html" title="Brace yourself data selection, industrialization is coming!" /><published>2018-03-22T09:00:00+01:00</published><updated>2018-03-22T09:00:00+01:00</updated><id>/r&amp;d/2018/03/22/industrialization-versus-data-selection</id><content type="html" xml:base="/r&amp;d/2018/03/22/industrialization-versus-data-selection.html">&lt;h1 id=&quot;brace-yourself-data-selection-industrialization-is-coming&quot;&gt;Brace yourself data selection, industrialization is coming!&lt;/h1&gt;
+&lt;p&gt;Enjoy!&lt;/p&gt;</content><author><name></name></author><category term="python" /><category term="NLP" /><summary type="html">There already existed some python packages to convert numbers written in English into Python numbers or their decimal digit representation, but there was nothing available for the French language. That's why we developed this library and shared it with the community.</summary></entry><entry><title type="html">From python to Go to Rust: an opinionated journey</title><link href="/point/of/view/2018/03/22/from-python-to-go-to-rust.html" rel="alternate" type="text/html" title="From python to Go to Rust: an opinionated journey" /><published>2018-03-22T09:00:00+01:00</published><updated>2018-03-22T09:00:00+01:00</updated><id>/point/of/view/2018/03/22/from-python-to-go-to-rust</id><content type="html" xml:base="/point/of/view/2018/03/22/from-python-to-go-to-rust.html">&lt;p&gt;When looking for a new backend language, I naturally went from &lt;a href=&quot;http://python.org/&quot;&gt;Python&lt;/a&gt; to the new cool kid: &lt;a href=&quot;https://golang.org/&quot;&gt;Go&lt;/a&gt;. But after only one week of Go, I realised that Go was only half of a progress. Better suited to my needs than Python, but too far away from the &lt;strong&gt;developer experience&lt;/strong&gt; I was enjoying when doing &lt;a href=&quot;http://elm-lang.org/&quot;&gt;Elm&lt;/a&gt; in the frontend. So I gave &lt;a href=&quot;https://www.rust-lang.org/&quot;&gt;Rust&lt;/a&gt; a try.&lt;/p&gt;
+
+&lt;h2 id=&quot;away-from-python&quot;&gt;Away from Python,&lt;/h2&gt;
+
+&lt;p&gt;For backend development, I’ve mainly been using Python 3 for the past three years. From admin scripts to machine learning to &lt;a href=&quot;http://flask.pocoo.org/&quot;&gt;Flask&lt;/a&gt;/&lt;a href=&quot;https://www.djangoproject.com/&quot;&gt;Django&lt;/a&gt; applications, I’ve done a lot of Python lately, but at some point, &lt;strong&gt;it didn’t feel right anymore&lt;/strong&gt;. Well, to be honest, it’s not really at “some totally random point” that it started not to feel right anymore, it was when I started to enjoy programming with a strongly typed language: &lt;a href=&quot;http://elm-lang.org/&quot;&gt;Elm&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;I had the famous feeling “when it compiles it works”, and once you’ve experienced that, &lt;strong&gt;there is no way back&lt;/strong&gt;. You try stuff, you follow the friendly compiler error messages, you fix things, and then &lt;em&gt;tada&lt;/em&gt;, it works!&lt;/p&gt;
+
+&lt;p&gt;Ok so, at this point I knew what I wanted from the “perfect” backend language:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Static&lt;/strong&gt; and &lt;strong&gt;strong&lt;/strong&gt; typing&lt;/li&gt;
+  &lt;li&gt;Most of the stuff checked at &lt;strong&gt;compile time&lt;/strong&gt; (please, no exceptions!)&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;No &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;null&lt;/code&gt;&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;No mutability&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;Handle &lt;strong&gt;concurrency&lt;/strong&gt; nicely&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;I see you coming: “hey, this is &lt;a href=&quot;https://www.haskell.org/&quot;&gt;Haskell&lt;/a&gt;”! Yeah indeed, but for whatever reason, I’ve never managed to get anything done with &lt;a href=&quot;https://www.haskell.org/&quot;&gt;Haskell&lt;/a&gt; (and I’ve been trying a lot). This is maybe only me, but from an outsider, the Haskell mindset seems elitist, the documentation and practical examples are lacking and it’s hardly accessible to a beginner. &lt;a href=&quot;http://learnyouahaskell.com/&quot;&gt;Learn you a Haskell for great good&lt;/a&gt; is awesome but very long to read and too abstract for me (you don’t build anything &lt;em&gt;for real&lt;/em&gt; during the book).&lt;/p&gt;
+
+&lt;p&gt;“Hey, and what about &lt;a href=&quot;https://www.scala-lang.org/&quot;&gt;Scala&lt;/a&gt;?!”. What do you mean by Scala? The better Java? The functional programming language with &lt;a href=&quot;https://github.com/scalaz/scalaz&quot;&gt;Scalaz&lt;/a&gt;? The Object Orienting Programming Functional language that may or may not fail at runtime with a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;java.lang.NullPointerException&lt;/code&gt; and needs a 4GB JVM running? I tried it some years ago and definitely, this is a no go for me.&lt;/p&gt;
+
+&lt;p&gt;After discussing with a few people, I decided to give &lt;strong&gt;Go&lt;/strong&gt; a try. It has a &lt;strong&gt;compiler&lt;/strong&gt;, &lt;strong&gt;no exceptions&lt;/strong&gt;, no &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;null&lt;/code&gt; (but &lt;strong&gt;null values&lt;/strong&gt;) and can handle &lt;strong&gt;concurrency&lt;/strong&gt; nicely.&lt;/p&gt;
+
+&lt;h2 id=&quot;into-go&quot;&gt;Into Go,&lt;/h2&gt;
+
+&lt;p&gt;I decided to rewrite an internal project that was already done in Python using Go. Just to get a feeling of the differences between the two.&lt;/p&gt;
+
+&lt;p&gt;First feeling: learning &lt;strong&gt;Go&lt;/strong&gt; was so easy. In &lt;strong&gt;one evening&lt;/strong&gt;, I was able to compile a Proof Of Concept of the project with basic features developed and some tests written. This was a very pleasant feeling, I was adding features very fast. The compiler messages were helpful, everything was fine.&lt;/p&gt;
+
+&lt;p&gt;And at some point, the tragedy started. I needed to add a field to some struct, so I just modified the struct and was ready to analyze the compiler messages to know where this struct was used in order to add the field where it was needed.&lt;/p&gt;
+
+&lt;p&gt;I compiled the code and … no error message. Everything went fine. But?! I just added a field to a struct, the compiler should say that my code is not good anymore because I’m not initializing the value where it should be!&lt;/p&gt;
+
+&lt;p&gt;The problem is that, not providing a value to a struct is not a problem in &lt;strong&gt;Go&lt;/strong&gt;. This value will default to it’s &lt;a href=&quot;https://tour.golang.org/basics/12&quot;&gt;zero value&lt;/a&gt; and everything will compile. This was the &lt;strong&gt;show stopper&lt;/strong&gt; for me. I realized that I &lt;strong&gt;couldn’t rely on the compiler&lt;/strong&gt; to get my back when I was doing mistakes. At this point, I was wondering: why should I bother learning &lt;strong&gt;Go&lt;/strong&gt; if the compiler can’t do much better than &lt;a href=&quot;http://mypy-lang.org/&quot;&gt;Python and mypy&lt;/a&gt;? Of course concurrency is much better with &lt;strong&gt;Go&lt;/strong&gt;, but the downside of not being able to rely on the compiler was too much for me.&lt;/p&gt;
+
+&lt;p&gt;Don’t get me wrong, I still think that &lt;strong&gt;Go&lt;/strong&gt; is a &lt;strong&gt;progress compared to Python&lt;/strong&gt; and I would definitively recommend people to learn Go instead of Python if they had to pick one of the two. But for my personal case, as someone who already knew Python and wanted something a lot safer, Go didn’t bring enough to the table in that specific domain.&lt;/p&gt;
+
+&lt;h2 id=&quot;into-rust&quot;&gt;Into Rust.&lt;/h2&gt;
+
+&lt;p&gt;So &lt;strong&gt;Go&lt;/strong&gt; was not an option anymore as I realized that what I really needed was a &lt;strong&gt;useful compiler&lt;/strong&gt;: a compiler that &lt;strong&gt;should not rely on the fact that I know how to code&lt;/strong&gt; (as it has been proven to be false a lot of times). That’s why I took a look at &lt;strong&gt;Rust&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Rust was not my first choice because it advertises itself as a “system language”, and I’m more of a web developer than a system one. But it had some very compelling selling points:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;No &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;null&lt;/code&gt; values but an &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Option&lt;/code&gt; type (checked at compile time)&lt;/li&gt;
+  &lt;li&gt;No &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;exceptions&lt;/code&gt; but a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Result&lt;/code&gt; type (checked at compile time)&lt;/li&gt;
+  &lt;li&gt;Variables are &lt;strong&gt;immutable&lt;/strong&gt; by default&lt;/li&gt;
+  &lt;li&gt;Designed with concurrency in mind&lt;/li&gt;
+  &lt;li&gt;Memory safe by design, no garbage collector&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;I decided to rewrite the &lt;strong&gt;same program&lt;/strong&gt; than the one I did in Python and Go. The &lt;strong&gt;onboarding was a lot harder&lt;/strong&gt; than with Go. As I did with Go, I tried to go head first, but it was too hard: I needed some new concepts specific to Rust like &lt;strong&gt;ownership&lt;/strong&gt; or &lt;strong&gt;lifetimes&lt;/strong&gt; to understand the code I was seeing on StackOverflow. So I had no choice but to read the &lt;a href=&quot;https://doc.rust-lang.org/book/second-edition/&quot;&gt;Rust Book&lt;/a&gt;, and it took me two weeks before I could start writing some code (remember that with Go it took me one evening).&lt;/p&gt;
+
+&lt;p&gt;But after this steep initial learning curve, I was enjoying writing Rust code, and I’m still enjoying it. With Rust, I don’t have to trust myself, I just have to &lt;strong&gt;follow the compiler&lt;/strong&gt; and if I do so, it will most likely work if it compiles. In the end, this is the main feeling I was looking for when searching for a new backend language.&lt;/p&gt;
+
+&lt;p&gt;Of course, Rust has a lot of &lt;strong&gt;downsides&lt;/strong&gt;:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;It’s pretty &lt;strong&gt;new and things are moving very fast&lt;/strong&gt;. I’m using &lt;a href=&quot;https://docs.rs/futures/&quot;&gt;futures-rs&lt;/a&gt; and &lt;a href=&quot;https://hyper.rs/&quot;&gt;hyper.rs&lt;/a&gt; in my project, and finding good documentation was really hard (kudos to the people on &lt;a href=&quot;https://chat.mibbit.com/?server=irc.mozilla.org&amp;amp;channel=%23rust-beginners&quot;&gt;irc.mozilla.org#rust-beginners&lt;/a&gt; for the help).&lt;/li&gt;
+  &lt;li&gt;It forces you to think of things you’re not used to when coming from more &lt;em&gt;high-level&lt;/em&gt; languages: &lt;strong&gt;how is the memory managed&lt;/strong&gt; (with lifetimes and ownership).&lt;/li&gt;
+  &lt;li&gt;Compiler messages are not always straightforward to understand, especially when you’re combining futures and their strange long types.&lt;/li&gt;
+  &lt;li&gt;Mutability is allowed, so you can get smashed with side effects&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;But, it also has a lot of &lt;strong&gt;upsides&lt;/strong&gt;:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;It’s &lt;strong&gt;amazingly fast&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Tooling is good&lt;/strong&gt; (cargo, rustfmt)&lt;/li&gt;
+  &lt;li&gt;Most of the things are &lt;strong&gt;checked at compile time&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;You can potentially &lt;strong&gt;do whatever you want with it&lt;/strong&gt;, from a browser, to a web app, to some game.&lt;/li&gt;
+  &lt;li&gt;Community is welcoming&lt;/li&gt;
+  &lt;li&gt;It’s backed by Mozilla&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;wrapping-up&quot;&gt;Wrapping up&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;Go&lt;/strong&gt; is cool but doesn’t provide enough type safety &lt;strong&gt;for me&lt;/strong&gt;. I would rather stick with &lt;strong&gt;Python&lt;/strong&gt; and its ecosystem than risking re-writing stuff in &lt;strong&gt;Go&lt;/strong&gt; if I don’t need concurrency. If I need concurrency I would still not use &lt;strong&gt;Go&lt;/strong&gt; as its lack of type safety will surely hit me back at some point.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Rust&lt;/strong&gt; is the perfect candidate for concurrency and safety, even if the &lt;a href=&quot;https://crates.io/crates/futures&quot;&gt;futures-rs&lt;/a&gt; crate (this is how we call libs in Rust) is still early stage. I suspect that &lt;strong&gt;Rust&lt;/strong&gt; could become the defacto standard for a lot of backend needs in the future.&lt;/p&gt;
+
+&lt;p&gt;For a more in depth blog post discussing the differences between Go and Rust, be sure to check this amazing post by &lt;a href=&quot;https://twitter.com/deckarep&quot;&gt;Ralph Caraveo (@deckarep)&lt;/a&gt; : &lt;a href=&quot;https://medium.com/@deckarep/paradigms-of-rust-for-the-go-developer-210f67cd6a29&quot;&gt;Paradigms of Rust for the Go developer&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;At the very least, I think that I’ve found in Rust &lt;strong&gt;my&lt;/strong&gt; new favorite language for the backend.&lt;/p&gt;</content><author><name></name></author><category term="rust" /><category term="go" /><category term="elm" /><summary type="html">When looking for a new backend language, I naturally went from Python to the new cool kid: Go. But after only one week of Go, I realised that Go was only half of a progress. Better suited to my needs than Python, but too far away from the developer experience I was enjoying when doing Elm in the frontend. So I gave Rust a try.</summary></entry><entry><title type="html">Brace yourself data selection, industrialization is coming!</title><link href="/r&d/2018/03/22/industrialization-versus-data-selection.html" rel="alternate" type="text/html" title="Brace yourself data selection, industrialization is coming!" /><published>2018-03-22T09:00:00+01:00</published><updated>2018-03-22T09:00:00+01:00</updated><id>/r&amp;d/2018/03/22/industrialization-versus-data-selection</id><content type="html" xml:base="/r&amp;d/2018/03/22/industrialization-versus-data-selection.html">&lt;h1 id=&quot;brace-yourself-data-selection-industrialization-is-coming&quot;&gt;Brace yourself data selection, industrialization is coming!&lt;/h1&gt;
 
 &lt;p&gt;Industrialization is one of the most challenging problems for a start-up like ours. In fact, the research world doesn’t have the same priorities concerning time and cost optimization. Whereas industry is limited by these factors. And this matter struck us when we thought about building language models (referred as LM in the following) massively, especially regarding data selection.&lt;/p&gt;
 
@@ -297,120 +564,38 @@ Décimaux: 12,99, 120,05 ; mais 60 02.
 
 &lt;p&gt;The goal is to select data from our out-of-domain corpora that can extend our in-domain data. Suppose you have a small in-domain corpora, which you are a hundred percent positive that is representative. The algorithm will take this corpus and a more generic one, where you don’t know what’s relevant or not. It will then select the sentences that match the specific one using an implementation of the Alexrod’s paper cited above. The script can take arguments which are detailed in the header of the script. It only requires the two corpora to work:&lt;/p&gt;
 
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;./cynical-selection.py --task inDomainFile.txt --unadapted outDomainFile.txt&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;./cynical-selection.py --task inDomainFile.txt --unadapted outDomainFile.txt&lt;/code&gt;&lt;/p&gt;
 
 &lt;p&gt;and returns you a list of sentences along with their scores in a ‘.jaded’ file constructed as follows:&lt;/p&gt;
 
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;&lt;span class=&quot;k&quot;&gt;model&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;score&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sentence&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;score&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;penalty&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gain&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;penalty&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sentence&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gain&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sentence&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;selection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sentence&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unadapted&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;corpora&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;best&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;word&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;word&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gain&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sentence&lt;/span&gt;&lt;/code&gt;
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;model score sentence score (penalty + gain) length penalty sentence gain sentence id (in the selection) sentence id (in the unadapted corpora) best word word gain sentence&lt;/code&gt;
 for example:&lt;/p&gt;
 
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;2.659289425334946       2.659289425334946       5.71042701737487        -3.0511375920399235     1       1       vous    -0.12597986190092164    merci à vous tous&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2.659289425334946       2.659289425334946       5.71042701737487        -3.0511375920399235     1       1       vous    -0.12597986190092164    merci à vous tous&lt;/code&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;5.318578850669892       2.659289425334946       5.71042701737487        -3.0511375920399235     2       26978   vous    -0.12597986190092164    et vous avez maintenant&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;5.318578850669892       2.659289425334946       5.71042701737487        -3.0511375920399235     2       26978   vous    -0.12597986190092164    et vous avez maintenant&lt;/code&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;7.9778682760048385      2.659289425334946       5.71042701737487        -3.0511375920399235     3       26979   vous    -0.12597986190092164    puisque vous avez des&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;7.9778682760048385      2.659289425334946       5.71042701737487        -3.0511375920399235     3       26979   vous    -0.12597986190092164    puisque vous avez des&lt;/code&gt;&lt;/p&gt;
 
 &lt;p&gt;In the end, we didn’t lose any performance using this method, we even gained accuracy most of the time. But the important part is that it allowed us to automatize this treatment, taking us one step closer to industrialization.&lt;/p&gt;
 
 &lt;h2 id=&quot;to-conclude&quot;&gt;To conclude&lt;/h2&gt;
 
-&lt;p&gt;This method allows us to focus on other parts of our systems, making us more productive and more serene towards the building of language model. So it’s a success captain!&lt;/p&gt;</content><author><name></name></author><category term="ASR" /><category term="data" /><category term="selection" /><summary type="html">Brace yourself data selection, industrialization is coming!</summary></entry><entry><title type="html">From python to Go to Rust: an opinionated journey</title><link href="/point/of/view/2018/03/22/from-python-to-go-to-rust.html" rel="alternate" type="text/html" title="From python to Go to Rust: an opinionated journey" /><published>2018-03-22T09:00:00+01:00</published><updated>2018-03-22T09:00:00+01:00</updated><id>/point/of/view/2018/03/22/from-python-to-go-to-rust</id><content type="html" xml:base="/point/of/view/2018/03/22/from-python-to-go-to-rust.html">&lt;p&gt;When looking for a new backend language, I naturally went from &lt;a href=&quot;http://python.org/&quot;&gt;Python&lt;/a&gt; to the new cool kid: &lt;a href=&quot;https://golang.org/&quot;&gt;Go&lt;/a&gt;. But after only one week of Go, I realised that Go was only half of a progress. Better suited to my needs than Python, but too far away from the &lt;strong&gt;developer experience&lt;/strong&gt; I was enjoying when doing &lt;a href=&quot;http://elm-lang.org/&quot;&gt;Elm&lt;/a&gt; in the frontend. So I gave &lt;a href=&quot;https://www.rust-lang.org/&quot;&gt;Rust&lt;/a&gt; a try.&lt;/p&gt;
-
-&lt;h2 id=&quot;away-from-python&quot;&gt;Away from Python,&lt;/h2&gt;
-
-&lt;p&gt;For backend development, I’ve mainly been using Python 3 for the past three years. From admin scripts to machine learning to &lt;a href=&quot;http://flask.pocoo.org/&quot;&gt;Flask&lt;/a&gt;/&lt;a href=&quot;https://www.djangoproject.com/&quot;&gt;Django&lt;/a&gt; applications, I’ve done a lot of Python lately, but at some point, &lt;strong&gt;it didn’t feel right anymore&lt;/strong&gt;. Well, to be honest, it’s not really at “some totally random point” that it started not to feel right anymore, it was when I started to enjoy programming with a strongly typed language: &lt;a href=&quot;http://elm-lang.org/&quot;&gt;Elm&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;I had the famous feeling “when it compiles it works”, and once you’ve experienced that, &lt;strong&gt;there is no way back&lt;/strong&gt;. You try stuff, you follow the friendly compiler error messages, you fix things, and then &lt;em&gt;tada&lt;/em&gt;, it works!&lt;/p&gt;
-
-&lt;p&gt;Ok so, at this point I knew what I wanted from the “perfect” backend language:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;&lt;strong&gt;Static&lt;/strong&gt; and &lt;strong&gt;strong&lt;/strong&gt; typing&lt;/li&gt;
-  &lt;li&gt;Most of the stuff checked at &lt;strong&gt;compile time&lt;/strong&gt; (please, no exceptions!)&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;No &lt;code class=&quot;highlighter-rouge&quot;&gt;null&lt;/code&gt;&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;No mutability&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;Handle &lt;strong&gt;concurrency&lt;/strong&gt; nicely&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;I see you coming: “hey, this is &lt;a href=&quot;https://www.haskell.org/&quot;&gt;Haskell&lt;/a&gt;”! Yeah indeed, but for whatever reason, I’ve never managed to get anything done with &lt;a href=&quot;https://www.haskell.org/&quot;&gt;Haskell&lt;/a&gt; (and I’ve been trying a lot). This is maybe only me, but from an outsider, the Haskell mindset seems elitist, the documentation and practical examples are lacking and it’s hardly accessible to a beginner. &lt;a href=&quot;http://learnyouahaskell.com/&quot;&gt;Learn you a Haskell for great good&lt;/a&gt; is awesome but very long to read and too abstract for me (you don’t build anything &lt;em&gt;for real&lt;/em&gt; during the book).&lt;/p&gt;
-
-&lt;p&gt;“Hey, and what about &lt;a href=&quot;https://www.scala-lang.org/&quot;&gt;Scala&lt;/a&gt;?!”. What do you mean by Scala? The better Java? The functional programming language with &lt;a href=&quot;https://github.com/scalaz/scalaz&quot;&gt;Scalaz&lt;/a&gt;? The Object Orienting Programming Functional language that may or may not fail at runtime with a &lt;code class=&quot;highlighter-rouge&quot;&gt;java.lang.NullPointerException&lt;/code&gt; and needs a 4GB JVM running? I tried it some years ago and definitely, this is a no go for me.&lt;/p&gt;
-
-&lt;p&gt;After discussing with a few people, I decided to give &lt;strong&gt;Go&lt;/strong&gt; a try. It has a &lt;strong&gt;compiler&lt;/strong&gt;, &lt;strong&gt;no exceptions&lt;/strong&gt;, no &lt;code class=&quot;highlighter-rouge&quot;&gt;null&lt;/code&gt; (but &lt;strong&gt;null values&lt;/strong&gt;) and can handle &lt;strong&gt;concurrency&lt;/strong&gt; nicely.&lt;/p&gt;
-
-&lt;h2 id=&quot;into-go&quot;&gt;Into Go,&lt;/h2&gt;
-
-&lt;p&gt;I decided to rewrite an internal project that was already done in Python using Go. Just to get a feeling of the differences between the two.&lt;/p&gt;
-
-&lt;p&gt;First feeling: learning &lt;strong&gt;Go&lt;/strong&gt; was so easy. In &lt;strong&gt;one evening&lt;/strong&gt;, I was able to compile a Proof Of Concept of the project with basic features developed and some tests written. This was a very pleasant feeling, I was adding features very fast. The compiler messages were helpful, everything was fine.&lt;/p&gt;
-
-&lt;p&gt;And at some point, the tragedy started. I needed to add a field to some struct, so I just modified the struct and was ready to analyze the compiler messages to know where this struct was used in order to add the field where it was needed.&lt;/p&gt;
-
-&lt;p&gt;I compiled the code and … no error message. Everything went fine. But?! I just added a field to a struct, the compiler should say that my code is not good anymore because I’m not initializing the value where it should be!&lt;/p&gt;
-
-&lt;p&gt;The problem is that, not providing a value to a struct is not a problem in &lt;strong&gt;Go&lt;/strong&gt;. This value will default to it’s &lt;a href=&quot;https://tour.golang.org/basics/12&quot;&gt;zero value&lt;/a&gt; and everything will compile. This was the &lt;strong&gt;show stopper&lt;/strong&gt; for me. I realized that I &lt;strong&gt;couldn’t rely on the compiler&lt;/strong&gt; to get my back when I was doing mistakes. At this point, I was wondering: why should I bother learning &lt;strong&gt;Go&lt;/strong&gt; if the compiler can’t do much better than &lt;a href=&quot;http://mypy-lang.org/&quot;&gt;Python and mypy&lt;/a&gt;? Of course concurrency is much better with &lt;strong&gt;Go&lt;/strong&gt;, but the downside of not being able to rely on the compiler was too much for me.&lt;/p&gt;
-
-&lt;p&gt;Don’t get me wrong, I still think that &lt;strong&gt;Go&lt;/strong&gt; is a &lt;strong&gt;progress compared to Python&lt;/strong&gt; and I would definitively recommend people to learn Go instead of Python if they had to pick one of the two. But for my personal case, as someone who already knew Python and wanted something a lot safer, Go didn’t bring enough to the table in that specific domain.&lt;/p&gt;
-
-&lt;h2 id=&quot;into-rust&quot;&gt;Into Rust.&lt;/h2&gt;
-
-&lt;p&gt;So &lt;strong&gt;Go&lt;/strong&gt; was not an option anymore as I realized that what I really needed was a &lt;strong&gt;useful compiler&lt;/strong&gt;: a compiler that &lt;strong&gt;should not rely on the fact that I know how to code&lt;/strong&gt; (as it has been proven to be false a lot of times). That’s why I took a look at &lt;strong&gt;Rust&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;p&gt;Rust was not my first choice because it advertises itself as a “system language”, and I’m more of a web developer than a system one. But it had some very compelling selling points:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;No &lt;code class=&quot;highlighter-rouge&quot;&gt;null&lt;/code&gt; values but an &lt;code class=&quot;highlighter-rouge&quot;&gt;Option&lt;/code&gt; type (checked at compile time)&lt;/li&gt;
-  &lt;li&gt;No &lt;code class=&quot;highlighter-rouge&quot;&gt;exceptions&lt;/code&gt; but a &lt;code class=&quot;highlighter-rouge&quot;&gt;Result&lt;/code&gt; type (checked at compile time)&lt;/li&gt;
-  &lt;li&gt;Variables are &lt;strong&gt;immutable&lt;/strong&gt; by default&lt;/li&gt;
-  &lt;li&gt;Designed with concurrency in mind&lt;/li&gt;
-  &lt;li&gt;Memory safe by design, no garbage collector&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;I decided to rewrite the &lt;strong&gt;same program&lt;/strong&gt; than the one I did in Python and Go. The &lt;strong&gt;onboarding was a lot harder&lt;/strong&gt; than with Go. As I did with Go, I tried to go head first, but it was too hard: I needed some new concepts specific to Rust like &lt;strong&gt;ownership&lt;/strong&gt; or &lt;strong&gt;lifetimes&lt;/strong&gt; to understand the code I was seeing on StackOverflow. So I had no choice but to read the &lt;a href=&quot;https://doc.rust-lang.org/book/second-edition/&quot;&gt;Rust Book&lt;/a&gt;, and it took me two weeks before I could start writing some code (remember that with Go it took me one evening).&lt;/p&gt;
-
-&lt;p&gt;But after this steep initial learning curve, I was enjoying writing Rust code, and I’m still enjoying it. With Rust, I don’t have to trust myself, I just have to &lt;strong&gt;follow the compiler&lt;/strong&gt; and if I do so, it will most likely work if it compiles. In the end, this is the main feeling I was looking for when searching for a new backend language.&lt;/p&gt;
-
-&lt;p&gt;Of course, Rust has a lot of &lt;strong&gt;downsides&lt;/strong&gt;:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;It’s pretty &lt;strong&gt;new and things are moving very fast&lt;/strong&gt;. I’m using &lt;a href=&quot;https://docs.rs/futures/&quot;&gt;futures-rs&lt;/a&gt; and &lt;a href=&quot;https://hyper.rs/&quot;&gt;hyper.rs&lt;/a&gt; in my project, and finding good documentation was really hard (kudos to the people on &lt;a href=&quot;https://chat.mibbit.com/?server=irc.mozilla.org&amp;amp;channel=%23rust-beginners&quot;&gt;irc.mozilla.org#rust-beginners&lt;/a&gt; for the help).&lt;/li&gt;
-  &lt;li&gt;It forces you to think of things you’re not used to when coming from more &lt;em&gt;high-level&lt;/em&gt; languages: &lt;strong&gt;how is the memory managed&lt;/strong&gt; (with lifetimes and ownership).&lt;/li&gt;
-  &lt;li&gt;Compiler messages are not always straightforward to understand, especially when you’re combining futures and their strange long types.&lt;/li&gt;
-  &lt;li&gt;Mutability is allowed, so you can get smashed with side effects&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;But, it also has a lot of &lt;strong&gt;upsides&lt;/strong&gt;:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;It’s &lt;strong&gt;amazingly fast&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Tooling is good&lt;/strong&gt; (cargo, rustfmt)&lt;/li&gt;
-  &lt;li&gt;Most of the things are &lt;strong&gt;checked at compile time&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;You can potentially &lt;strong&gt;do whatever you want with it&lt;/strong&gt;, from a browser, to a web app, to some game.&lt;/li&gt;
-  &lt;li&gt;Community is welcoming&lt;/li&gt;
-  &lt;li&gt;It’s backed by Mozilla&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;wrapping-up&quot;&gt;Wrapping up&lt;/h2&gt;
-
-&lt;p&gt;&lt;strong&gt;Go&lt;/strong&gt; is cool but doesn’t provide enough type safety &lt;strong&gt;for me&lt;/strong&gt;. I would rather stick with &lt;strong&gt;Python&lt;/strong&gt; and its ecosystem than risking re-writing stuff in &lt;strong&gt;Go&lt;/strong&gt; if I don’t need concurrency. If I need concurrency I would still not use &lt;strong&gt;Go&lt;/strong&gt; as its lack of type safety will surely hit me back at some point.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Rust&lt;/strong&gt; is the perfect candidate for concurrency and safety, even if the &lt;a href=&quot;https://crates.io/crates/futures&quot;&gt;futures-rs&lt;/a&gt; crate (this is how we call libs in Rust) is still early stage. I suspect that &lt;strong&gt;Rust&lt;/strong&gt; could become the defacto standard for a lot of backend needs in the future.&lt;/p&gt;
-
-&lt;p&gt;For a more in depth blog post discussing the differences between Go and Rust, be sure to check this amazing post by &lt;a href=&quot;https://twitter.com/deckarep&quot;&gt;Ralph Caraveo (@deckarep)&lt;/a&gt; : &lt;a href=&quot;https://medium.com/@deckarep/paradigms-of-rust-for-the-go-developer-210f67cd6a29&quot;&gt;Paradigms of Rust for the Go developer&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;At the very least, I think that I’ve found in Rust &lt;strong&gt;my&lt;/strong&gt; new favorite language for the backend.&lt;/p&gt;</content><author><name></name></author><category term="rust" /><category term="go" /><category term="elm" /><summary type="html">When looking for a new backend language, I naturally went from Python to the new cool kid: Go. But after only one week of Go, I realised that Go was only half of a progress. Better suited to my needs than Python, but too far away from the developer experience I was enjoying when doing Elm in the frontend. So I gave Rust a try.</summary></entry><entry><title type="html">Chaining HTTP requests in Elm</title><link href="/learning/elm/2018/02/05/chaining-http-requests-in-elm.html" rel="alternate" type="text/html" title="Chaining HTTP requests in Elm" /><published>2018-02-05T09:00:00+01:00</published><updated>2018-02-05T09:00:00+01:00</updated><id>/learning/elm/2018/02/05/chaining-http-requests-in-elm</id><content type="html" xml:base="/learning/elm/2018/02/05/chaining-http-requests-in-elm.html">&lt;p&gt;&lt;em&gt;Preliminary note: in this article we’ll use Elm &lt;a href=&quot;https://guide.elm-lang.org/interop/json.html&quot;&gt;decoders&lt;/a&gt;, &lt;a href=&quot;http://ohanhi.com/tasks-in-modern-elm.html&quot;&gt;tasks&lt;/a&gt;, &lt;a href=&quot;https://guide.elm-lang.org/error_handling/result.html&quot;&gt;results&lt;/a&gt; and leverage the &lt;a href=&quot;https://guide.elm-lang.org/architecture/&quot;&gt;Elm Architecture&lt;/a&gt;. If you’re not comfortable with these concepts, you may want to check their respective documentation.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;This method allows us to focus on other parts of our systems, making us more productive and more serene towards the building of language model. So it’s a success captain!&lt;/p&gt;</content><author><name></name></author><category term="ASR" /><category term="data" /><category term="selection" /><summary type="html">Brace yourself data selection, industrialization is coming!</summary></entry><entry><title type="html">Chaining HTTP requests in Elm</title><link href="/learning/elm/2018/02/05/chaining-http-requests-in-elm.html" rel="alternate" type="text/html" title="Chaining HTTP requests in Elm" /><published>2018-02-05T09:00:00+01:00</published><updated>2018-02-05T09:00:00+01:00</updated><id>/learning/elm/2018/02/05/chaining-http-requests-in-elm</id><content type="html" xml:base="/learning/elm/2018/02/05/chaining-http-requests-in-elm.html">&lt;p&gt;&lt;em&gt;Preliminary note: in this article we’ll use Elm &lt;a href=&quot;https://guide.elm-lang.org/interop/json.html&quot;&gt;decoders&lt;/a&gt;, &lt;a href=&quot;http://ohanhi.com/tasks-in-modern-elm.html&quot;&gt;tasks&lt;/a&gt;, &lt;a href=&quot;https://guide.elm-lang.org/error_handling/result.html&quot;&gt;results&lt;/a&gt; and leverage the &lt;a href=&quot;https://guide.elm-lang.org/architecture/&quot;&gt;Elm Architecture&lt;/a&gt;. If you’re not comfortable with these concepts, you may want to check their respective documentation.&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;Sometimes in Elm you struggle with the most basic things.&lt;/p&gt;
 
 &lt;p&gt;Especially when you come from a JavaScript background, where chaining HTTP requests are relatively easy thanks to Promises. Here’s a real-world example leveraging the Github public API, where we fetch a list of Github events, pick the first one and query some user information from its unique identifier.&lt;/p&gt;
 
-&lt;p&gt;The first request uses the &lt;code class=&quot;highlighter-rouge&quot;&gt;https://api.github.com/events&lt;/code&gt; endpoint, and the retrieved JSON looks like this:&lt;/p&gt;
+&lt;p&gt;The first request uses the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;https://api.github.com/events&lt;/code&gt; endpoint, and the retrieved JSON looks like this:&lt;/p&gt;
 
 &lt;div class=&quot;language-json highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
     &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-        &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;id&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;987654321&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-        &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;ForkEvent&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-        &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;actor&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-            &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;id&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1234567&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-            &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;login&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foobar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;id&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;987654321&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;ForkEvent&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;actor&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+            &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;id&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1234567&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+            &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;login&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foobar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
         &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
     &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
 &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
@@ -418,12 +603,12 @@ for example:&lt;/p&gt;
 
 &lt;p&gt;I’m purposely omitting a lot of other properties from the records here, for brevity.&lt;/p&gt;
 
-&lt;p&gt;The second request we need to do is on the &lt;code class=&quot;highlighter-rouge&quot;&gt;https://api.github.com/users/{login}&lt;/code&gt; endpoint, and its body looks like this:&lt;/p&gt;
+&lt;p&gt;The second request we need to do is on the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;https://api.github.com/users/{login}&lt;/code&gt; endpoint, and its body looks like this:&lt;/p&gt;
 
 &lt;div class=&quot;language-json highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-    &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;id&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1234567&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-    &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;login&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foobar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-    &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;name&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Foo Bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;id&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1234567&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;login&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foobar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;name&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Foo Bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
 &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
@@ -433,20 +618,20 @@ for example:&lt;/p&gt;
 
 &lt;ul&gt;
   &lt;li&gt;from a list of events, to pick the first one if any,&lt;/li&gt;
-  &lt;li&gt;then pick its &lt;code class=&quot;highlighter-rouge&quot;&gt;actor.login&lt;/code&gt; property,&lt;/li&gt;
+  &lt;li&gt;then pick its &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;actor.login&lt;/code&gt; property,&lt;/li&gt;
   &lt;li&gt;query the user details endpoint using this value,&lt;/li&gt;
   &lt;li&gt;extract the user real name for that account.&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;Using JavaScript, that would look like this:&lt;/p&gt;
 
-&lt;div class=&quot;language-js highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;fetch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;https://api.github.com/events&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;div class=&quot;language-js highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;fetch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;https://api.github.com/events&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
     &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;then&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;responseA&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
         &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;responseA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;json&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
     &lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
     &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;then&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;events&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
         &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;events&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;No events.&quot;&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;No events.&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;
         &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
         &lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;actor&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;login&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;events&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
         &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;fetch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;`https://api.github.com/users/&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;login&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
@@ -456,7 +641,7 @@ for example:&lt;/p&gt;
     &lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
     &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;then&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;user&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
         &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;unspecified&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;unspecified&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
         &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
             &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
         &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
@@ -466,19 +651,19 @@ for example:&lt;/p&gt;
     &lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;It would get a little fancier using &lt;code class=&quot;highlighter-rouge&quot;&gt;async/await&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;It would get a little fancier using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;async/await&lt;/code&gt;:&lt;/p&gt;
 
 &lt;div class=&quot;language-js highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;responseA&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;fetch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;https://api.github.com/events&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;events&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;responseA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;json&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;responseA&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;fetch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;https://api.github.com/events&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;events&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;responseA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;json&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
     &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;events&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;No events.&quot;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;No events.&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;
     &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
     &lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;actor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;login&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;events&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;responseB&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;fetch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;`https://api.github.com/users/&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;login&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;user&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;responseB&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;json&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;responseB&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;fetch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;`https://api.github.com/users/&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;login&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;user&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;responseB&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;json&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
     &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;unspecified&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;unspecified&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
     &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
         &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
     &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
@@ -489,7 +674,7 @@ for example:&lt;/p&gt;
 
 &lt;p&gt;This is already complicated code to read and understand, and it’s tricky to do using Elm as well. Let’s see how to achieve the same, understanding exactly what we’re doing (we’ve all blindly copied and pasted code in the past, don’t deny).&lt;/p&gt;
 
-&lt;p&gt;First, let’s write the two requests we need; one for fetching the list of events, the second to obtain a given user’s details from her &lt;code class=&quot;highlighter-rouge&quot;&gt;login&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;First, let’s write the two requests we need; one for fetching the list of events, the second to obtain a given user’s details from her &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;login&lt;/code&gt;:&lt;/p&gt;
 
 &lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kr&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;Http&lt;/span&gt;
 &lt;span class=&quot;kr&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;Json.Decode&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Decode&lt;/span&gt;
@@ -511,9 +696,9 @@ for example:&lt;/p&gt;
         &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;These two functions return &lt;code class=&quot;highlighter-rouge&quot;&gt;Http.Request&lt;/code&gt; with the type of data they’ll retrieve and decode from the JSON body of their respective responses. &lt;code class=&quot;highlighter-rouge&quot;&gt;nameRequest&lt;/code&gt; handles the case where Github users don’t have entered their full name yet, so the &lt;code class=&quot;highlighter-rouge&quot;&gt;name&lt;/code&gt; field might be a &lt;code class=&quot;highlighter-rouge&quot;&gt;null&lt;/code&gt;; as with the JavaScript version, we then default to &lt;code class=&quot;highlighter-rouge&quot;&gt;&quot;unspecified&quot;&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;These two functions return &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Http.Request&lt;/code&gt; with the type of data they’ll retrieve and decode from the JSON body of their respective responses. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;nameRequest&lt;/code&gt; handles the case where Github users don’t have entered their full name yet, so the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;name&lt;/code&gt; field might be a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;null&lt;/code&gt;; as with the JavaScript version, we then default to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&quot;unspecified&quot;&lt;/code&gt;.&lt;/p&gt;
 
-&lt;p&gt;That’s good but now we need to execute and chain these two requests, the second one depending on the result of the first one, where we retrieve the &lt;code class=&quot;highlighter-rouge&quot;&gt;actor.login&lt;/code&gt; value of the event object.&lt;/p&gt;
+&lt;p&gt;That’s good but now we need to execute and chain these two requests, the second one depending on the result of the first one, where we retrieve the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;actor.login&lt;/code&gt; value of the event object.&lt;/p&gt;
 
 &lt;p&gt;Elm is a pure language, meaning you can’t have side effects in your functions (a side effect is when functions alter things outside of their scope and use these things: an HTTP request is a &lt;em&gt;huge&lt;/em&gt; side effect). So your functions must return &lt;em&gt;something&lt;/em&gt; that represents a given side effect, instead of executing it within the function scope itself. The Elm runtime will be in charge of actually performing the side effect, using a &lt;a href=&quot;https://www.elm-tutorial.org/en/03-subs-cmds/02-commands.html&quot;&gt;Command&lt;/a&gt;.&lt;/p&gt;
 
@@ -525,18 +710,18 @@ for example:&lt;/p&gt;
   &lt;p&gt;I find it helpful to think of tasks as if they were shopping lists. A shopping list contains detailed instructions of what should be fetched from the grocery store, but that doesn’t mean the shopping is done. I need to use the list while at the grocery store in order to get an end result&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;p&gt;But why do we need to convert a &lt;code class=&quot;highlighter-rouge&quot;&gt;Task&lt;/code&gt; into a command you may ask? Because a command can execute a single thing at a time, so if you need to execute multiple side effects at once, you’ll need a single task that represents all these side effects.&lt;/p&gt;
+&lt;p&gt;But why do we need to convert a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Task&lt;/code&gt; into a command you may ask? Because a command can execute a single thing at a time, so if you need to execute multiple side effects at once, you’ll need a single task that represents all these side effects.&lt;/p&gt;
 
 &lt;p&gt;So basically:&lt;/p&gt;
 
 &lt;ol&gt;
-  &lt;li&gt;We first craft &lt;code class=&quot;highlighter-rouge&quot;&gt;Http.Request&lt;/code&gt;s,&lt;/li&gt;
-  &lt;li&gt;We turn them into &lt;code class=&quot;highlighter-rouge&quot;&gt;Task&lt;/code&gt;s we can chain,&lt;/li&gt;
-  &lt;li&gt;We turn the resulting &lt;code class=&quot;highlighter-rouge&quot;&gt;Task&lt;/code&gt; into a command,&lt;/li&gt;
+  &lt;li&gt;We first craft &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Http.Request&lt;/code&gt;s,&lt;/li&gt;
+  &lt;li&gt;We turn them into &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Task&lt;/code&gt;s we can chain,&lt;/li&gt;
+  &lt;li&gt;We turn the resulting &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Task&lt;/code&gt; into a command,&lt;/li&gt;
   &lt;li&gt;This command is executed by the runtime, and we get a result&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;p&gt;The &lt;a href=&quot;http://package.elm-lang.org/packages/elm-lang/http/latest/Http&quot;&gt;Http&lt;/a&gt; package provides &lt;code class=&quot;highlighter-rouge&quot;&gt;Http.toTask&lt;/code&gt; to map an &lt;code class=&quot;highlighter-rouge&quot;&gt;Http.Request&lt;/code&gt; into a &lt;code class=&quot;highlighter-rouge&quot;&gt;Task&lt;/code&gt;. Let’s use that here:&lt;/p&gt;
+&lt;p&gt;The &lt;a href=&quot;http://package.elm-lang.org/packages/elm-lang/http/latest/Http&quot;&gt;Http&lt;/a&gt; package provides &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Http.toTask&lt;/code&gt; to map an &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Http.Request&lt;/code&gt; into a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Task&lt;/code&gt;. Let’s use that here:&lt;/p&gt;
 
 &lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;fetchEvents&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Task&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Error&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;List&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;fetchEvents&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
@@ -547,9 +732,9 @@ for example:&lt;/p&gt;
     &lt;span class=&quot;n&quot;&gt;nameRequest&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;login&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toTask&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;I created these two simple functions mostly to focus on their return types; a &lt;code class=&quot;highlighter-rouge&quot;&gt;Task&lt;/code&gt; must define an error type and a result type. For example, &lt;code class=&quot;highlighter-rouge&quot;&gt;fetchEvents&lt;/code&gt; being an HTTP task, it will receive an &lt;code class=&quot;highlighter-rouge&quot;&gt;Http.Error&lt;/code&gt; when the task fails, and a list of strings when the task succeeds.&lt;/p&gt;
+&lt;p&gt;I created these two simple functions mostly to focus on their return types; a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Task&lt;/code&gt; must define an error type and a result type. For example, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;fetchEvents&lt;/code&gt; being an HTTP task, it will receive an &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Http.Error&lt;/code&gt; when the task fails, and a list of strings when the task succeeds.&lt;/p&gt;
 
-&lt;p&gt;But dealing with HTTP errors in a granular way being out of scope of this blog post, and in order to keep things as simple and concise as possible, I’m gonna use &lt;code class=&quot;highlighter-rouge&quot;&gt;Task.mapError&lt;/code&gt; to turn complex HTTP errors into their string representations:&lt;/p&gt;
+&lt;p&gt;But dealing with HTTP errors in a granular way being out of scope of this blog post, and in order to keep things as simple and concise as possible, I’m gonna use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Task.mapError&lt;/code&gt; to turn complex HTTP errors into their string representations:&lt;/p&gt;
 
 &lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;toHttpTask&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Request&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Task&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;toHttpTask&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;request&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
@@ -566,9 +751,9 @@ for example:&lt;/p&gt;
     &lt;span class=&quot;n&quot;&gt;toHttpTask&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nameRequest&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;login&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;Here, &lt;code class=&quot;highlighter-rouge&quot;&gt;toHttpTask&lt;/code&gt; is a helper turning an &lt;code class=&quot;highlighter-rouge&quot;&gt;Http.Request&lt;/code&gt; into a &lt;code class=&quot;highlighter-rouge&quot;&gt;Task&lt;/code&gt;, transforming the &lt;code class=&quot;highlighter-rouge&quot;&gt;Http.Error&lt;/code&gt; complex type into a serialized, purely textual version of it: a &lt;code class=&quot;highlighter-rouge&quot;&gt;String&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Here, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;toHttpTask&lt;/code&gt; is a helper turning an &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Http.Request&lt;/code&gt; into a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Task&lt;/code&gt;, transforming the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Http.Error&lt;/code&gt; complex type into a serialized, purely textual version of it: a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;String&lt;/code&gt;.&lt;/p&gt;
 
-&lt;p&gt;We’ll also need a function allowing to extract the very first element of a list, if any, as we did in JavaScript using &lt;code class=&quot;highlighter-rouge&quot;&gt;events[0]&lt;/code&gt;. Such a function is builtin the &lt;code class=&quot;highlighter-rouge&quot;&gt;List&lt;/code&gt; core module as &lt;code class=&quot;highlighter-rouge&quot;&gt;List.head&lt;/code&gt;. And let’s make this function a &lt;code class=&quot;highlighter-rouge&quot;&gt;Task&lt;/code&gt; too, as that will ease chaining everything together and allow us to expose an error message when the list is empty:&lt;/p&gt;
+&lt;p&gt;We’ll also need a function allowing to extract the very first element of a list, if any, as we did in JavaScript using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;events[0]&lt;/code&gt;. Such a function is builtin the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;List&lt;/code&gt; core module as &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;List.head&lt;/code&gt;. And let’s make this function a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Task&lt;/code&gt; too, as that will ease chaining everything together and allow us to expose an error message when the list is empty:&lt;/p&gt;
 
 &lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;pickFirst&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;List&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Task&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;pickFirst&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logins&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
@@ -580,22 +765,22 @@ for example:&lt;/p&gt;
             &lt;span class=&quot;kt&quot;&gt;Task&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fail&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;No events.&quot;&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;Note the use of &lt;code class=&quot;highlighter-rouge&quot;&gt;Task.succeed&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;Task.fail&lt;/code&gt;, which are approximately the Elm equivalents of &lt;code class=&quot;highlighter-rouge&quot;&gt;Promise.resolve&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;Promise.reject&lt;/code&gt;: this is how you create tasks that succeed or fail immediately.&lt;/p&gt;
+&lt;p&gt;Note the use of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Task.succeed&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Task.fail&lt;/code&gt;, which are approximately the Elm equivalents of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Promise.resolve&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Promise.reject&lt;/code&gt;: this is how you create tasks that succeed or fail immediately.&lt;/p&gt;
 
-&lt;p&gt;So in order to chain all the pieces we have so far, we obviously need &lt;em&gt;glue&lt;/em&gt;. And this glue is the &lt;code class=&quot;highlighter-rouge&quot;&gt;Task.andThen&lt;/code&gt; function, which can chain our tasks this fancy way:&lt;/p&gt;
+&lt;p&gt;So in order to chain all the pieces we have so far, we obviously need &lt;em&gt;glue&lt;/em&gt;. And this glue is the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Task.andThen&lt;/code&gt; function, which can chain our tasks this fancy way:&lt;/p&gt;
 
 &lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;fetchEvents&lt;/span&gt;
     &lt;span class=&quot;o&quot;&gt;|&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Task&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;andThen&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pickFirst&lt;/span&gt;
     &lt;span class=&quot;o&quot;&gt;|&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Task&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;andThen&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fetchName&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;Neat. But wait. As we mentioned previously, Tasks are &lt;em&gt;descriptions&lt;/em&gt; of side effects, not their actual execution. The &lt;code class=&quot;highlighter-rouge&quot;&gt;Task.attempt&lt;/code&gt; function will help us doing that, by turning a &lt;code class=&quot;highlighter-rouge&quot;&gt;Task&lt;/code&gt; into a &lt;a href=&quot;https://www.elm-tutorial.org/en/03-subs-cmds/02-commands.html&quot;&gt;Command&lt;/a&gt;, provided we define a &lt;code class=&quot;highlighter-rouge&quot;&gt;Msg&lt;/code&gt; that will be responsible of dealing with the received result:&lt;/p&gt;
+&lt;p&gt;Neat. But wait. As we mentioned previously, Tasks are &lt;em&gt;descriptions&lt;/em&gt; of side effects, not their actual execution. The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Task.attempt&lt;/code&gt; function will help us doing that, by turning a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Task&lt;/code&gt; into a &lt;a href=&quot;https://www.elm-tutorial.org/en/03-subs-cmds/02-commands.html&quot;&gt;Command&lt;/a&gt;, provided we define a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Msg&lt;/code&gt; that will be responsible of dealing with the received result:&lt;/p&gt;
 
 &lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kr&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Msg&lt;/span&gt;
     &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Name&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Result&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;Result String String&lt;/code&gt; reflects the result of the HTTP request and shares the same type definitions for both the error (a &lt;code class=&quot;highlighter-rouge&quot;&gt;String&lt;/code&gt;) and the value (the user full name, a &lt;code class=&quot;highlighter-rouge&quot;&gt;String&lt;/code&gt; too). Let’s use this &lt;code class=&quot;highlighter-rouge&quot;&gt;Msg&lt;/code&gt; with &lt;code class=&quot;highlighter-rouge&quot;&gt;Task.attempt&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Result String String&lt;/code&gt; reflects the result of the HTTP request and shares the same type definitions for both the error (a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;String&lt;/code&gt;) and the value (the user full name, a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;String&lt;/code&gt; too). Let’s use this &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Msg&lt;/code&gt; with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Task.attempt&lt;/code&gt;:&lt;/p&gt;
 
 &lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;fetchEvents&lt;/span&gt;
     &lt;span class=&quot;o&quot;&gt;|&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Task&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;andThen&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pickFirst&lt;/span&gt;
@@ -609,12 +794,12 @@ for example:&lt;/p&gt;
   &lt;li&gt;We start by fetching all the events,&lt;/li&gt;
   &lt;li&gt;Then if the Task succeeds, we pick the first event,&lt;/li&gt;
   &lt;li&gt;Then if we have one, we fetch the event’s user full name,&lt;/li&gt;
-  &lt;li&gt;And we map the future result of this task to the &lt;code class=&quot;highlighter-rouge&quot;&gt;Name&lt;/code&gt; message.&lt;/li&gt;
+  &lt;li&gt;And we map the future result of this task to the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Name&lt;/code&gt; message.&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;The cool thing here is that if anything fails along the chain, the chain stops and the error will be propagated down to the &lt;code class=&quot;highlighter-rouge&quot;&gt;Name&lt;/code&gt; handler. No need to check errors for each operation! Yes, that looks a lot like how JavaScript Promises’ &lt;code class=&quot;highlighter-rouge&quot;&gt;.catch&lt;/code&gt; works.&lt;/p&gt;
+&lt;p&gt;The cool thing here is that if anything fails along the chain, the chain stops and the error will be propagated down to the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Name&lt;/code&gt; handler. No need to check errors for each operation! Yes, that looks a lot like how JavaScript Promises’ &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.catch&lt;/code&gt; works.&lt;/p&gt;
 
-&lt;p&gt;Now, how are we going to execute the resulting command and process the result? We need to setup the &lt;a href=&quot;https://guide.elm-lang.org/architecture/&quot;&gt;Elm Architecture&lt;/a&gt; and its good old &lt;code class=&quot;highlighter-rouge&quot;&gt;update&lt;/code&gt; function:&lt;/p&gt;
+&lt;p&gt;Now, how are we going to execute the resulting command and process the result? We need to setup the &lt;a href=&quot;https://guide.elm-lang.org/architecture/&quot;&gt;Elm Architecture&lt;/a&gt; and its good old &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;update&lt;/code&gt; function:&lt;/p&gt;
 
 &lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kr&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;Main&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;exposing&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 
@@ -626,7 +811,7 @@ for example:&lt;/p&gt;
 
 &lt;span class=&quot;kr&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alias&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Model&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
     &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Maybe&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ne&quot;&gt;error&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;error&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;
     &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 
 &lt;span class=&quot;kr&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Msg&lt;/span&gt;
@@ -673,7 +858,7 @@ for example:&lt;/p&gt;
 
 &lt;span class=&quot;n&quot;&gt;init&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Cmd&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Msg&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;init&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Nothing&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ne&quot;&gt;error&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Nothing&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;error&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
         &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fetchEvents&lt;/span&gt;
                 &lt;span class=&quot;o&quot;&gt;|&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Task&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;andThen&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pickFirst&lt;/span&gt;
                 &lt;span class=&quot;o&quot;&gt;|&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Task&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;andThen&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fetchName&lt;/span&gt;
@@ -686,16 +871,16 @@ for example:&lt;/p&gt;
         &lt;span class=&quot;kt&quot;&gt;Name&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Ok&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
             &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;model&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Just&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;[]&lt;/span&gt;
 
-        &lt;span class=&quot;kt&quot;&gt;Name&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Err&lt;/span&gt; &lt;span class=&quot;ne&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
-            &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;model&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;ne&quot;&gt;error&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;ne&quot;&gt;error&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;[]&lt;/span&gt;
+        &lt;span class=&quot;kt&quot;&gt;Name&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Err&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;model&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;error&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;error&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;[]&lt;/span&gt;
 
 &lt;span class=&quot;n&quot;&gt;view&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Model&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Html&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Msg&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;view&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;model&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;div&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;[]&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;ne&quot;&gt;error&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;then&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;error&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;then&lt;/span&gt;
             &lt;span class=&quot;n&quot;&gt;div&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;[]&lt;/span&gt;
                 &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;h4&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;text&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Error encountered&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-                &lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pre&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;text&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;ne&quot;&gt;error&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+                &lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pre&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;text&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;error&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
                 &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
           &lt;span class=&quot;kr&quot;&gt;else&lt;/span&gt;
             &lt;span class=&quot;n&quot;&gt;text&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt;
@@ -727,15 +912,15 @@ for example:&lt;/p&gt;
 
 &lt;h2 id=&quot;following-the-rabbit&quot;&gt;Following the rabbit&lt;/h2&gt;
 
-&lt;p&gt;We will assume that you can erase your disk and start with a fresh install, if it’s not the case, this article may not be for you. For the sake of this article, we will use &lt;code class=&quot;highlighter-rouge&quot;&gt;/dev/nvme0n1&lt;/code&gt; as the main disk of the laptop. You may have something different like &lt;code class=&quot;highlighter-rouge&quot;&gt;/dev/sda&lt;/code&gt;, that’s fine, just replace &lt;code class=&quot;highlighter-rouge&quot;&gt;/dev/nvme0n1&lt;/code&gt; by &lt;code class=&quot;highlighter-rouge&quot;&gt;/dev/sda&lt;/code&gt; in the rest of the article.&lt;/p&gt;
+&lt;p&gt;We will assume that you can erase your disk and start with a fresh install, if it’s not the case, this article may not be for you. For the sake of this article, we will use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/dev/nvme0n1&lt;/code&gt; as the main disk of the laptop. You may have something different like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/dev/sda&lt;/code&gt;, that’s fine, just replace &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/dev/nvme0n1&lt;/code&gt; by &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/dev/sda&lt;/code&gt; in the rest of the article.&lt;/p&gt;
 
 &lt;p&gt;First, follow the &lt;a href=&quot;https://wiki.archlinux.org/index.php/Installation_guide&quot;&gt;Archlinux installation guide&lt;/a&gt; to the point just before &lt;strong&gt;Format the partitions&lt;/strong&gt;, where they are telling you to modify the partition tables using &lt;strong&gt;fdisk&lt;/strong&gt; or &lt;strong&gt;parted&lt;/strong&gt;. Here, you will need to erase all your partitions and create what’s needed for the encryption.&lt;/p&gt;
 
 &lt;h3 id=&quot;clean-and-safely-erase-your-disk&quot;&gt;Clean and safely erase your disk&lt;/h3&gt;
 
-&lt;p&gt;First, use &lt;code class=&quot;highlighter-rouge&quot;&gt;fdisk&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;gdisk&lt;/code&gt; (if you’re using UEFI) to wipe out what’s on your disk, i.e. removing all existing partitions (of course, this will delete all the data on your disk…).&lt;/p&gt;
+&lt;p&gt;First, use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;fdisk&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gdisk&lt;/code&gt; (if you’re using UEFI) to wipe out what’s on your disk, i.e. removing all existing partitions (of course, this will delete all the data on your disk…).&lt;/p&gt;
 
-&lt;p&gt;For example, for &lt;code class=&quot;highlighter-rouge&quot;&gt;gdisk&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;For example, for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gdisk&lt;/code&gt;:&lt;/p&gt;
 &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gdisk /dev/nvme0n1
 
 GPT fdisk &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;gdisk&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; version 1.0.3
@@ -751,38 +936,38 @@ Found valid GPT with protective MBR&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt
 Command &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;? &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;help&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;:
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;Use &lt;code class=&quot;highlighter-rouge&quot;&gt;p&lt;/code&gt; to print your partition schema, and &lt;code class=&quot;highlighter-rouge&quot;&gt;d&lt;/code&gt; to delete partitions. Once it’s done, use &lt;code class=&quot;highlighter-rouge&quot;&gt;w&lt;/code&gt; to write your changes to the disk (that is to say, &lt;strong&gt;again&lt;/strong&gt;, deleting all the data on your disk) and quit &lt;code class=&quot;highlighter-rouge&quot;&gt;gdisk&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;p&lt;/code&gt; to print your partition schema, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;d&lt;/code&gt; to delete partitions. Once it’s done, use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;w&lt;/code&gt; to write your changes to the disk (that is to say, &lt;strong&gt;again&lt;/strong&gt;, deleting all the data on your disk) and quit &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gdisk&lt;/code&gt;.&lt;/p&gt;
 
 &lt;p&gt;Every page on the archlinux wiki says you should first be sure that no previous data will still be readable on your disk (if you have a new computer with nothing on it, this doesn’t apply to you).&lt;/p&gt;
 
 &lt;p&gt;So we will put random stuff on our disk to be sure to overwrite everything that may still be on it. You can read the &lt;a href=&quot;https://wiki.archlinux.org/index.php/Securely_wipe_disk#Random_data&quot;&gt;wiki page&lt;/a&gt; or just run the following command:&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;dd if=/dev/urandom &amp;gt; /dev/nvme0n1
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;dd if=/dev/urandom &amp;gt; /dev/nvme0n1
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;h3 id=&quot;partitionning&quot;&gt;Partitionning&lt;/h3&gt;
 
-&lt;p&gt;We now have a clean disk, let’s create what’s needed for our encrypted system, that is to say 2 partitions: a partition for &lt;code class=&quot;highlighter-rouge&quot;&gt;/boot&lt;/code&gt; (that will not be encrypted) and another one for our encrypted volumes (where we will later put &lt;code class=&quot;highlighter-rouge&quot;&gt;/&lt;/code&gt; and our &lt;code class=&quot;highlighter-rouge&quot;&gt;swap&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;We now have a clean disk, let’s create what’s needed for our encrypted system, that is to say 2 partitions: a partition for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/boot&lt;/code&gt; (that will not be encrypted) and another one for our encrypted volumes (where we will later put &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/&lt;/code&gt; and our &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;swap&lt;/code&gt;).&lt;/p&gt;
 
-&lt;p&gt;Here is what we want to have (output of my &lt;code class=&quot;highlighter-rouge&quot;&gt;gdisk&lt;/code&gt; with the &lt;code class=&quot;highlighter-rouge&quot;&gt;p&lt;/code&gt; command):&lt;/p&gt;
+&lt;p&gt;Here is what we want to have (output of my &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gdisk&lt;/code&gt; with the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;p&lt;/code&gt; command):&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Number  Start (sector)    End (sector)  Size       Code  Name
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Number  Start (sector)    End (sector)  Size       Code  Name
    1            2048         1050623   512.0 MiB   EF00  EFI System
    2         1050624      1000215182   476.4 GiB   8E00  Linux LVM
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;First, create the partition where &lt;code class=&quot;highlighter-rouge&quot;&gt;/boot&lt;/code&gt; will be mounted of type &lt;code class=&quot;highlighter-rouge&quot;&gt;8300&lt;/code&gt; (512Mo is a good size) following the &lt;a href=&quot;https://wiki.archlinux.org/index.php/EFI_System_Partition#Create_the_partition&quot;&gt;archlinux wiki&lt;/a&gt;. I’m assuming you’re using a system compatible with UEFI, if it’s not the case, you may want to document yourself a little bit more using the wiki. Format the partition using &lt;em&gt;FAT32&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;First, create the partition where &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/boot&lt;/code&gt; will be mounted of type &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;8300&lt;/code&gt; (512Mo is a good size) following the &lt;a href=&quot;https://wiki.archlinux.org/index.php/EFI_System_Partition#Create_the_partition&quot;&gt;archlinux wiki&lt;/a&gt;. I’m assuming you’re using a system compatible with UEFI, if it’s not the case, you may want to document yourself a little bit more using the wiki. Format the partition using &lt;em&gt;FAT32&lt;/em&gt;.&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;mkfs.fat -F32 /dev/nvme0n1p1
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;mkfs.fat -F32 /dev/nvme0n1p1
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;Create the other partition of code &lt;code class=&quot;highlighter-rouge&quot;&gt;8E00&lt;/code&gt; using the remaining space.&lt;/p&gt;
+&lt;p&gt;Create the other partition of code &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;8E00&lt;/code&gt; using the remaining space.&lt;/p&gt;
 
-&lt;p&gt;You should now have only 2 partitions, one for &lt;code class=&quot;highlighter-rouge&quot;&gt;/boot&lt;/code&gt; that will not be encrypted, and another one that you will first encrypt, and then put your volumes on it (&lt;code class=&quot;highlighter-rouge&quot;&gt;/&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;swap&lt;/code&gt;). In my case, the first partition that will be used for &lt;code class=&quot;highlighter-rouge&quot;&gt;/boot&lt;/code&gt; is named &lt;code class=&quot;highlighter-rouge&quot;&gt;/dev/nvme0n1p1&lt;/code&gt;, and the other one &lt;code class=&quot;highlighter-rouge&quot;&gt;/dev/nvme0n1p2&lt;/code&gt;. You may have something like &lt;code class=&quot;highlighter-rouge&quot;&gt;/dev/sda1&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;/dev/sda2&lt;/code&gt; if your partition naming scheme is not the same than mine.&lt;/p&gt;
+&lt;p&gt;You should now have only 2 partitions, one for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/boot&lt;/code&gt; that will not be encrypted, and another one that you will first encrypt, and then put your volumes on it (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;swap&lt;/code&gt;). In my case, the first partition that will be used for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/boot&lt;/code&gt; is named &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/dev/nvme0n1p1&lt;/code&gt;, and the other one &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/dev/nvme0n1p2&lt;/code&gt;. You may have something like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/dev/sda1&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/dev/sda2&lt;/code&gt; if your partition naming scheme is not the same than mine.&lt;/p&gt;
 
 &lt;p&gt;You can then follow the (LVM on LUKS section)[https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#LVM_on_LUKS] section.&lt;/p&gt;
 
-&lt;p&gt;I don’t like having separate partitions for &lt;code class=&quot;highlighter-rouge&quot;&gt;/&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;/home&lt;/code&gt;. Every time I’ve done that, I always regretted the amount of space I allocated for each. So now, I’m only creating one &lt;code class=&quot;highlighter-rouge&quot;&gt;/&lt;/code&gt; partition with everything inside.&lt;/p&gt;
+&lt;p&gt;I don’t like having separate partitions for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/home&lt;/code&gt;. Every time I’ve done that, I always regretted the amount of space I allocated for each. So now, I’m only creating one &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/&lt;/code&gt; partition with everything inside.&lt;/p&gt;
 
 &lt;p&gt;In short, below are the commands you should be running for your encrypted volumes (I’m creating a 8Go swap partition).&lt;/p&gt;
 
@@ -808,23 +993,23 @@ mkswap /dev/mapper/MyVol-swap
 swapon /dev/mapper/MyVol-swap
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;The arch wiki tells you to format you boot partition using &lt;code class=&quot;highlighter-rouge&quot;&gt;ext2&lt;/code&gt;, but for me this was a bad idea, as I want the UEFI manager of my Dell XPS 9550 to be able to boot on my &lt;code class=&quot;highlighter-rouge&quot;&gt;/boot&lt;/code&gt; partition. So, as I said above, I formatted this partition using &lt;code class=&quot;highlighter-rouge&quot;&gt;FAT32&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The arch wiki tells you to format you boot partition using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ext2&lt;/code&gt;, but for me this was a bad idea, as I want the UEFI manager of my Dell XPS 9550 to be able to boot on my &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/boot&lt;/code&gt; partition. So, as I said above, I formatted this partition using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;FAT32&lt;/code&gt;.&lt;/p&gt;
 
-&lt;p&gt;Mount the &lt;code class=&quot;highlighter-rouge&quot;&gt;/boot&lt;/code&gt; partition:&lt;/p&gt;
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;mkdir /mnt/boot
+&lt;p&gt;Mount the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/boot&lt;/code&gt; partition:&lt;/p&gt;
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;mkdir&lt;/span&gt; /mnt/boot
 mount /dev/nvme0n1p2 /mnt/boot
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;You can then follow the (&lt;code class=&quot;highlighter-rouge&quot;&gt;mkinitcpio&lt;/code&gt; part of the archlinux wiki)[https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Configuring_mkinitcpio_2].&lt;/p&gt;
+&lt;p&gt;You can then follow the (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mkinitcpio&lt;/code&gt; part of the archlinux wiki)[https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Configuring_mkinitcpio_2].&lt;/p&gt;
 
-&lt;p&gt;Be sure to have something like that in your &lt;code class=&quot;highlighter-rouge&quot;&gt;mkinitcpio.conf&lt;/code&gt; file:&lt;/p&gt;
+&lt;p&gt;Be sure to have something like that in your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mkinitcpio.conf&lt;/code&gt; file:&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;HOOKS=(... keyboard keymap block encrypt lvm2 ... filesystems ...)
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;HOOKS=(... keyboard keymap block encrypt lvm2 ... filesystems ...)
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;Then continue to install you system normally. Of course, be sure to configure your grub accordingly to your encrypted setup by &lt;a href=&quot;https://wiki.archlinux.org/index.php/Dm-crypt/System_configuration#Boot_loader&quot;&gt;following the wiki&lt;/a&gt;.&lt;/p&gt;
 
-&lt;p&gt;For the record, here is my &lt;code class=&quot;highlighter-rouge&quot;&gt;/etc/defaults/grub&lt;/code&gt; file (it’s used to generate the &lt;code class=&quot;highlighter-rouge&quot;&gt;/boot/grub/grub.cfg&lt;/code&gt; file by using &lt;code class=&quot;highlighter-rouge&quot;&gt;grub-mkconfig -o /boot/grub/grub.cfg&lt;/code&gt;):&lt;/p&gt;
+&lt;p&gt;For the record, here is my &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/etc/defaults/grub&lt;/code&gt; file (it’s used to generate the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/boot/grub/grub.cfg&lt;/code&gt; file by using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;grub-mkconfig -o /boot/grub/grub.cfg&lt;/code&gt;):&lt;/p&gt;
 
 &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# GRUB boot loader configuration&lt;/span&gt;
 
@@ -904,10 +1089,10 @@ mount /dev/nvme0n1p2 /mnt/boot
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;reducer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
     &lt;span class=&quot;k&quot;&gt;switch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;EMPTY&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;EMPTY&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
             &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;init&lt;/span&gt;
         &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ADD_WATER&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;ADD_WATER&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
             &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{...&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;water&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;water&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
         &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
     &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
@@ -918,21 +1103,21 @@ mount /dev/nvme0n1p2 /mnt/boot
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// Step by step state building&lt;/span&gt;
 &lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;init&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;water&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 &lt;span class=&quot;kd&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;init&lt;/span&gt;
-&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;reducer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ADD_WATER&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;reducer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;EMPTY&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;reducer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ADD_WATER&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;reducer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ADD_WATER&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;reducer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;ADD_WATER&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;reducer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;EMPTY&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;reducer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;ADD_WATER&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;reducer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;ADD_WATER&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
 
 &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// {water: 2}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;Or using &lt;code class=&quot;highlighter-rouge&quot;&gt;Array#reduce&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;Or using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Array#reduce&lt;/code&gt;:&lt;/p&gt;
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// Using Array#reduce and an array of actions&lt;/span&gt;
 &lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;actions&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ADD_WATER&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;EMPTY&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ADD_WATER&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ADD_WATER&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;ADD_WATER&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;EMPTY&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;ADD_WATER&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;ADD_WATER&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
 
 &lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;init&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;water&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
@@ -942,34 +1127,34 @@ mount /dev/nvme0n1p2 /mnt/boot
 &lt;p&gt;So I could use the Ferris wheel metaphor again:&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;state&lt;/code&gt; represents the state of the wheel basket (and the quantity of water in it)&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;init&lt;/code&gt; is the initial state of the wheel basket (it contains no water yet)&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;actions&lt;/code&gt; are the list of operations to proceed each time the basket reaches the ground again (here, filling the basket with water from the lake, sometimes emptying the basket)&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;state&lt;/code&gt; represents the state of the wheel basket (and the quantity of water in it)&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;init&lt;/code&gt; is the initial state of the wheel basket (it contains no water yet)&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;actions&lt;/code&gt; are the list of operations to proceed each time the basket reaches the ground again (here, filling the basket with water from the lake, sometimes emptying the basket)&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;For the records, yes my coworker was still very oddly looking at me.&lt;/p&gt;
 
-&lt;p&gt;We moved on and decided to reimplement the same thing in Elm, using &lt;code class=&quot;highlighter-rouge&quot;&gt;foldl&lt;/code&gt;. Its type signature is:&lt;/p&gt;
+&lt;p&gt;We moved on and decided to reimplement the same thing in Elm, using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;foldl&lt;/code&gt;. Its type signature is:&lt;/p&gt;
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-haskell&quot; data-lang=&quot;haskell&quot;&gt;&lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;List&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;Wow, that looks complicated, especially when you’re new to Elm.&lt;/p&gt;
 
-&lt;p&gt;In Elm, type signatures separate each function arguments and the return value with an arrow (&lt;code style=&quot;white-space: nowrap&quot;&gt;-&amp;gt;&lt;/code&gt;); so, let’s decompose the one for &lt;code class=&quot;highlighter-rouge&quot;&gt;foldl&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;In Elm, type signatures separate each function arguments and the return value with an arrow (&lt;code style=&quot;white-space: nowrap&quot;&gt;-&amp;gt;&lt;/code&gt;); so, let’s decompose the one for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;foldl&lt;/code&gt;:&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;(a -&amp;gt; b -&amp;gt; b)&lt;/code&gt;, the first argument, means we want a function, taking two arguments typed &lt;code class=&quot;highlighter-rouge&quot;&gt;a&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;b&lt;/code&gt; and returning a &lt;code class=&quot;highlighter-rouge&quot;&gt;b&lt;/code&gt;. That sounds a lot like our &lt;code class=&quot;highlighter-rouge&quot;&gt;reducer&lt;/code&gt; function in JavaScript! If so, &lt;code class=&quot;highlighter-rouge&quot;&gt;a&lt;/code&gt; is an action, and &lt;code class=&quot;highlighter-rouge&quot;&gt;b&lt;/code&gt; a state.&lt;/li&gt;
-  &lt;li&gt;the next argument, typed as &lt;code class=&quot;highlighter-rouge&quot;&gt;b&lt;/code&gt;, is the initial state we start reducing our list of actions from.&lt;/li&gt;
-  &lt;li&gt;the next argument, &lt;code class=&quot;highlighter-rouge&quot;&gt;List a&lt;/code&gt;, is our list of actions.&lt;/li&gt;
-  &lt;li&gt;And all this must return a &lt;code class=&quot;highlighter-rouge&quot;&gt;b&lt;/code&gt;, hence a new state. We have the exact definition of what we’re after.&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;(a -&amp;gt; b -&amp;gt; b)&lt;/code&gt;, the first argument, means we want a function, taking two arguments typed &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;a&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;b&lt;/code&gt; and returning a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;b&lt;/code&gt;. That sounds a lot like our &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;reducer&lt;/code&gt; function in JavaScript! If so, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;a&lt;/code&gt; is an action, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;b&lt;/code&gt; a state.&lt;/li&gt;
+  &lt;li&gt;the next argument, typed as &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;b&lt;/code&gt;, is the initial state we start reducing our list of actions from.&lt;/li&gt;
+  &lt;li&gt;the next argument, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;List a&lt;/code&gt;, is our list of actions.&lt;/li&gt;
+  &lt;li&gt;And all this must return a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;b&lt;/code&gt;, hence a new state. We have the exact definition of what we’re after.&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;Actually our own use of &lt;code class=&quot;highlighter-rouge&quot;&gt;foldl&lt;/code&gt; would have been much more obvious if we initially saw this, replacing &lt;code class=&quot;highlighter-rouge&quot;&gt;a&lt;/code&gt; by &lt;code class=&quot;highlighter-rouge&quot;&gt;Action&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;b&lt;/code&gt; by &lt;code class=&quot;highlighter-rouge&quot;&gt;State&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;Actually our own use of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;foldl&lt;/code&gt; would have been much more obvious if we initially saw this, replacing &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;a&lt;/code&gt; by &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Action&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;b&lt;/code&gt; by &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;State&lt;/code&gt;:&lt;/p&gt;
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-haskell&quot; data-lang=&quot;haskell&quot;&gt;&lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Action&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;State&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;State&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;State&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;List&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Action&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;State&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;blockquote&gt;
-  &lt;p&gt;Note: if you’re still struggling with these &lt;code class=&quot;highlighter-rouge&quot;&gt;a&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;b&lt;/code&gt;s, you should probably read a little about &lt;a href=&quot;https://guide.elm-lang.org/types/union_types.html#generic-data-structures&quot;&gt;Generic Types&lt;/a&gt;.&lt;/p&gt;
+  &lt;p&gt;Note: if you’re still struggling with these &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;a&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;b&lt;/code&gt;s, you should probably read a little about &lt;a href=&quot;https://guide.elm-lang.org/types/union_types.html#generic-data-structures&quot;&gt;Generic Types&lt;/a&gt;.&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;p&gt;Our resulting minimalistic implementation was:&lt;/p&gt;
@@ -1021,7 +1206,7 @@ mount /dev/nvme0n1p2 /mnt/boot
 
 &lt;p&gt;That was it, it was more obvious how to map things my coworker already knew to something new to him, while in fact it was actually exactly the same thing, expressed slightly differently from a syntax perspective.&lt;/p&gt;
 
-&lt;p&gt;We also expanded that the &lt;a href=&quot;https://guide.elm-lang.org/architecture/&quot;&gt;Elm Architecture&lt;/a&gt; and the traditional &lt;code class=&quot;highlighter-rouge&quot;&gt;update&lt;/code&gt; function was basically a projection of &lt;code class=&quot;highlighter-rouge&quot;&gt;foldl&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;Action&lt;/code&gt; being usually named &lt;em&gt;Msg&lt;/em&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;State&lt;/code&gt; &lt;em&gt;Model&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;We also expanded that the &lt;a href=&quot;https://guide.elm-lang.org/architecture/&quot;&gt;Elm Architecture&lt;/a&gt; and the traditional &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;update&lt;/code&gt; function was basically a projection of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;foldl&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Action&lt;/code&gt; being usually named &lt;em&gt;Msg&lt;/em&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;State&lt;/code&gt; &lt;em&gt;Model&lt;/em&gt;.&lt;/p&gt;
 
 &lt;p&gt;The funny thing being, Redux design itself was initially inspired by the Elm Architecture!&lt;/p&gt;
 

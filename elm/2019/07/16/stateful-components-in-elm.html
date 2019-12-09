@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Begin Jekyll SEO tag v2.5.0 -->
 <title>Stateful components in Elm | Allo-Media Technical Blog</title>
-<meta name="generator" content="Jekyll v3.7.4" />
+<meta name="generator" content="Jekyll v3.8.5" />
 <meta property="og:title" content="Stateful components in Elm" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="It’s often claimed that Elm developers should avoid thinking their views as stateful components. While this is indeed a general best design practice, sometimes you may want to make your views reusable, and if they come with a state… you end up copying and pasting a lot of things." />
@@ -16,7 +16,7 @@
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2019-07-16T11:00:00+02:00" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","headline":"Stateful components in Elm","dateModified":"2019-07-16T11:00:00+02:00","datePublished":"2019-07-16T11:00:00+02:00","mainEntityOfPage":{"@type":"WebPage","@id":"/elm/2019/07/16/stateful-components-in-elm.html"},"url":"/elm/2019/07/16/stateful-components-in-elm.html","description":"It’s often claimed that Elm developers should avoid thinking their views as stateful components. While this is indeed a general best design practice, sometimes you may want to make your views reusable, and if they come with a state… you end up copying and pasting a lot of things.","@context":"http://schema.org"}</script>
+{"headline":"Stateful components in Elm","dateModified":"2019-07-16T11:00:00+02:00","datePublished":"2019-07-16T11:00:00+02:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"/elm/2019/07/16/stateful-components-in-elm.html"},"url":"/elm/2019/07/16/stateful-components-in-elm.html","description":"It’s often claimed that Elm developers should avoid thinking their views as stateful components. While this is indeed a general best design practice, sometimes you may want to make your views reusable, and if they come with a state… you end up copying and pasting a lot of things.","@context":"http://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
   <link rel="stylesheet" href="/assets/main.css">
@@ -105,6 +105,12 @@
             
             
           
+            
+            
+          
+            
+            
+          
         </div>
       </nav>
     
@@ -138,7 +144,7 @@
 
 <p><img src="/assets/2019-07-16-stateful-components-in-elm/demo.gif" alt="app demo" /></p>
 
-<p>Many component/widget-oriented Elm packages feature a rather raw <a href="https://guide.elm-lang.org/architecture/">Elm Architecture (TEA)</a> API, directly exposing <code class="highlighter-rouge">Model</code>, <code class="highlighter-rouge">Msg(..)</code>, <code class="highlighter-rouge">init</code>, <code class="highlighter-rouge">update</code> and <code class="highlighter-rouge">view</code>, so you can basically import what defines an actual application and embed it within your own application.</p>
+<p>Many component/widget-oriented Elm packages feature a rather raw <a href="https://guide.elm-lang.org/architecture/">Elm Architecture (TEA)</a> API, directly exposing <code class="language-plaintext highlighter-rouge">Model</code>, <code class="language-plaintext highlighter-rouge">Msg(..)</code>, <code class="language-plaintext highlighter-rouge">init</code>, <code class="language-plaintext highlighter-rouge">update</code> and <code class="language-plaintext highlighter-rouge">view</code>, so you can basically import what defines an actual application and embed it within your own application.</p>
 
 <p><img src="/assets/2019-07-16-stateful-components-in-elm/meme.jpg" alt="funny meme" /></p>
 
@@ -198,9 +204,9 @@
 <p>This certainly works, but let’s be frank for a minute and admit this is super verbose and not very developer friendly:</p>
 
 <ul>
-  <li>You need to <code class="highlighter-rouge">Cmd.map</code> and <code class="highlighter-rouge">Html.map</code> here and there</li>
-  <li>You need to pattern match <code class="highlighter-rouge">Counter.Msg</code> to intercept whatever event interests you…</li>
-  <li>… meaning <code class="highlighter-rouge">Counter</code> exposes all <code class="highlighter-rouge">Msg</code>s, which are <strong>implementation details</strong> you now rely on.</li>
+  <li>You need to <code class="language-plaintext highlighter-rouge">Cmd.map</code> and <code class="language-plaintext highlighter-rouge">Html.map</code> here and there</li>
+  <li>You need to pattern match <code class="language-plaintext highlighter-rouge">Counter.Msg</code> to intercept whatever event interests you…</li>
+  <li>… meaning <code class="language-plaintext highlighter-rouge">Counter</code> exposes all <code class="language-plaintext highlighter-rouge">Msg</code>s, which are <strong>implementation details</strong> you now rely on.</li>
 </ul>
 
 <p>There’s another way, which <a href="https://github.com/evancz/">Evan</a> explained in his now deprecated <a href="https://github.com/evancz/elm-sortable-table#about-api-design">elm-sortable-table</a> package. Among the many good points he has, one idea stroke me as brilliantly simple yet effective to simplify such stateful view components API design:</p>
@@ -209,7 +215,7 @@
   <p><strong>State updates can be managed right from event handlers!</strong></p>
 </blockquote>
 
-<p>Let’s imagine a simple counter; what if when clicking the <em>increment</em> button, instead of calling <code class="highlighter-rouge">onClick</code> with some <code class="highlighter-rouge">Increment</code> message, we would call <strong>a user-provided one</strong> with the new counter state updated accordingly?</p>
+<p>Let’s imagine a simple counter; what if when clicking the <em>increment</em> button, instead of calling <code class="language-plaintext highlighter-rouge">onClick</code> with some <code class="language-plaintext highlighter-rouge">Increment</code> message, we would call <strong>a user-provided one</strong> with the new counter state updated accordingly?</p>
 
 <div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Counter.elm</span>
 <span class="n">view</span> <span class="o">:</span> <span class="p">(</span><span class="kt">Int</span> <span class="o">-&gt;</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Int</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
@@ -230,9 +236,9 @@
         <span class="p">[</span> <span class="n">text</span> <span class="s">"increment"</span> <span class="p">]</span>
 </code></pre></div></div>
 
-<p>Note that as we’re dealing with a counter state, we didn’t bother having anything else than a simple <code class="highlighter-rouge">Int</code> for representing it. But you could of course have a record or anything you want.</p>
+<p>Note that as we’re dealing with a counter state, we didn’t bother having anything else than a simple <code class="language-plaintext highlighter-rouge">Int</code> for representing it. But you could of course have a record or anything you want.</p>
 
-<p>Handling internal state update could be just creating internal and unexposed <code class="highlighter-rouge">Msg</code> and <code class="highlighter-rouge">update</code> functions:</p>
+<p>Handling internal state update could be just creating internal and unexposed <code class="language-plaintext highlighter-rouge">Msg</code> and <code class="language-plaintext highlighter-rouge">update</code> functions:</p>
 
 <div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Counter.elm</span>
 <span class="kr">type</span> <span class="kt">State</span>
@@ -261,7 +267,7 @@
         <span class="p">]</span>
 </code></pre></div></div>
 
-<p>We should also expose helpers to retrieve (or set) values from the opaque <code class="highlighter-rouge">State</code> type:</p>
+<p>We should also expose helpers to retrieve (or set) values from the opaque <code class="language-plaintext highlighter-rouge">State</code> type:</p>
 
 <div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Counter.elm</span>
 <span class="n">getValue</span> <span class="o">:</span> <span class="kt">State</span> <span class="o">-&gt;</span> <span class="kt">Int</span>
@@ -269,7 +275,7 @@
     <span class="n">value</span>
 </code></pre></div></div>
 
-<p>So for instance, to use this <code class="highlighter-rouge">Counter</code> component in your own application, you just have to write this:</p>
+<p>So for instance, to use this <code class="language-plaintext highlighter-rouge">Counter</code> component in your own application, you just have to write this:</p>
 
 <div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kr">import</span> <span class="nn">Counter</span>
 
@@ -307,7 +313,7 @@
         <span class="p">]</span>
 </code></pre></div></div>
 
-<p>Notice how our <code class="highlighter-rouge">update</code> function is dramatically simpler to write and to understand. Also, no need to import (and rely) a lot from the package module, which makes it <strong>both easier to consume &amp; maintain</strong> thanks to to the opaque <code class="highlighter-rouge">State</code> type encapsulating implementation details.</p>
+<p>Notice how our <code class="language-plaintext highlighter-rouge">update</code> function is dramatically simpler to write and to understand. Also, no need to import (and rely) a lot from the package module, which makes it <strong>both easier to consume &amp; maintain</strong> thanks to to the opaque <code class="language-plaintext highlighter-rouge">State</code> type encapsulating implementation details.</p>
 
 <p>Of course a counter wouldn’t be worth creating a package for it, though this may highlight the concept better. Don’t hesitate reading <em>elm-daterange-picker</em>’s <a href="https://github.com/allo-media/elm-daterange-picker/blob/master/src/DateRangePicker.elm">source code</a> and <a href="https://github.com/allo-media/elm-daterange-picker/blob/master/demo/Main.elm">demo code</a> to look at a real world application of this design principle.</p>
 
