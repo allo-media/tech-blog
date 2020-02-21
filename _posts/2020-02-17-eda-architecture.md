@@ -43,7 +43,7 @@ After much thinking and experiments, we came with these core design principles t
 
 ### Business Services and Data Processing Services
 
-We make a distinction between Business Services and Data Processing Services (a.k.a. utility services) to cleanly separate business logic from data processing complexity.
+We make a distinction between *Business Services* and *Data Processing Services* (a.k.a. utility services) to cleanly separate business logic from data processing complexity.
 
 DP Services are expected to be  **pure, stateless, services** that provide some kind of algorithmic data processing (computations, transformations, …). Moreover, they are also context free: they should not depend on business knowledge, assumptions or external data sources. All they need to do their processing must be in the command itself. They should not have to query a tier to get more data. DP services are kind of *universal* libraries and can even be provided by tiers.
 
