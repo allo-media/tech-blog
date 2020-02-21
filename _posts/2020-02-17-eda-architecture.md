@@ -9,7 +9,7 @@ tags: python services rust broker event bus rabbitmq architecture
 
 ## Introduction
 
-At Allo-Media, like many other businesses, our value chain looks like a pipeline: we collect conversations (mainly through phone) sent to us by our customers, we transcribe them, we tag the transcripts with named entities, we anonymize both the transcript and the audio, then we qualify the content with semantic tags, and finally we index them and provide a UI and API to consult, search, analyze the conversations. All those steps are completed automatically by NLP and AI algorithms.
+At [Allo-Media](https://www.allo-media.net/en/), like many other businesses, our value chain looks like a pipeline: we collect conversations (mainly through phone) sent to us by our customers, we transcribe them, we tag the transcripts with named entities, we anonymize both the transcript and the audio, then we qualify the content with semantic tags, and finally we index them and provide a UI and API to consult, search, analyze the conversations. All those steps are completed automatically by NLP and AI algorithms.
 
 Such pipelines are well suited for service based architectures. If you need to add a new feature, you introduce a new service into the pipeline.
 
