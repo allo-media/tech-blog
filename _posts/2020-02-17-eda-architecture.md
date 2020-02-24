@@ -59,7 +59,7 @@ All services must be idempotent, that is, if they receive twice the exactly same
 
 In the same way we have two different kinds of services, we have two different kinds of messages: *Commands* and *Events*.
 
-Events are business messages emitted by business services and telling the bus what happened.
+Events are business messages published on the bus by business services and telling the world what happened.
 
 A business service owns the type of Events it emits. It knows nothing about the services who will process them. It subscribes to the types of Events it needs but knows nothing about their origins.
 
