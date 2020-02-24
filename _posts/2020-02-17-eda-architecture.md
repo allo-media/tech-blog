@@ -9,7 +9,7 @@ tags: python services rust broker event bus rabbitmq architecture
 
 ## Introduction
 
-At Allo-Media, like many other businesses, our value chain looks like a pipeline: we collect conversations (mainly through phone) sent to us by our customers, we transcribe them, we tag the transcripts with named entities, we anonymize both the transcript and the audio, then we qualify the content with semantic tags, and finally we index them and provide a UI and API to consult, search, analyze the conversations. All those steps are completed automatically by NLP and AI algorithms.
+At Allo-Media, like many other businesses, our value chain looks like a pipeline: we collect conversations (mainly through phone) sent to us by our customers, we transcribe them, we tag the transcripts with named entities, we anonymize both the transcript and the audio, then we qualify the content with semantic tags, and finally we index them and provide a UI and API to consult, search and analyze the conversations. All those steps are completed automatically by NLP and AI algorithms.
 
 Such pipelines are well suited for service based architectures. If you need to add a new feature, you introduce a new service into the pipeline.
 
@@ -17,14 +17,14 @@ Our first take at it was based on REST services. Unfortunately, that approach ha
 * it introduces strong coupling between components, as each service has to know about the other related services, their addresses, their purposes, their APIs…;
 * load balancing requires ad-hoc solutions;
 * high availability is tricky because of the synchronous communication: if the requested service is down, the caller has to implement complex "retry later" strategies or give up! And so on for each service.
-* upgrading or adding new services is a lot a work as it impacts other services and requires careful coordinated releases. Plus you have to provide them with IP and DNS addresses.
+* upgrading or adding new services is a lot of work as it impacts other services and requires careful coordinated releases. Plus, you have to provide them with IP and DNS addresses.
 
 So one year later, as our activity grew and development accelerated, we quickly realized that we needed:
 
 * maximum service decoupling;
 * easy distribution;
 * no brainer load balancing;
-* one to one, one to many, many to one, many to many asynchronous communication;
+* one to one, one to many, many to one, many to many asynchronous communications;
 * high availability: hot restart of services, transparent addition or removal of service instances (workers), resilience to (reasonable) downtime of some services;
 * support for heavy payloads (megabytes of mp3 audio);
 * no data loss, whatever happens.
@@ -45,7 +45,7 @@ After much thinking and experiments, we came with these core design principles t
 
 We make a distinction between Business Services and Data Processing Services (a.k.a. utility services) to cleanly separate business logic from data processing complexity.
 
-DP Services are expected to be  **pure, stateless, services** that provide some kind of algorithmic data processing (computations, transformations, …). Moreover, they are also context free: they should not depend on business knowledge, assumptions or external data sources. All they need to do their processing must be in the command itself. They should not have to query a tier to get more data. DP services are kind of *universal* libraries and can even be provided by tiers.
+DP Services are expected to be  **pure, stateless, services** that provide some kind of algorithmic data processing (computations, transformations, …). Moreover, they are also context free: they should not depend on business rules, assumptions or external data sources. All they need to do their processing must be in the command itself. They should not have to query a tier to get more data. DP services are kind of *universal* libraries and can even be provided by tiers.
 
 Business Services implement the customers' workflows and only focus on business rules and requirements to orchestrate and implement the value addition upon our customers' audio and data. They make use of the DP services as a library for that. There are very specific to us: you would never want to externalize your business services.
 
@@ -65,7 +65,7 @@ A business service owns the type of Events it emits. It knows nothing about the 
 
 An Event type defines the meaning of the events of that type and their data schema. They must be documented.
 
-The type of an actual event message is given by its name (used as *routing key* in AMQP, see *Topology* below). The event type name must be in the form `SubjectPastParticiple`. For example, `ConversationStarted`, `CustomerCreated`, `ShoppingCartValidated`… If you're not able to immediately give a name to your event type, it means it is not well defined, or that is not an event. Maybe, you need to refine your service or split it, as you may not have analyzed your value chain deeply enough?
+The type of an actual event message is given by its name (used as *routing key* in [RabbitMQ AMQP protocol](https://www.rabbitmq.com/protocol.html), see *Topology* below). The event type name must be in the form `SubjectPastParticiple`. For example, `ConversationStarted`, `CustomerCreated`, `ShoppingCartValidated`… If you're not able to immediately give a name to your event type, it means it is not well defined, or that it is not an event. Maybe, you need to refine your service or split it, as you may not have analyzed your value chain deeply enough?
 
 Commands are utility messages consumed by Data Processing Services.
 
@@ -82,7 +82,7 @@ The `correlation_id` and `reply_to` are standard on Commands and Results, and th
 
 A Result contains the result of the process, that can be the successful outcome, or an error.
 
-Error results are expected and documented: they are « normal » errors, not bug reports. Bug exceptions *must not return an error result*. In case of unexpected error, the service will replace the input command on the queue once, and if a second try raises an unexpected error again, the message is refused and goes into the dead letter queue for investigation. The exceptions are always logged.
+Error results are expected and documented: they are “normal” errors, not bug reports. Bug exceptions *must not return an error result*. In case of unexpected error, the service will replace the input command on the queue once, and if a second try raises an unexpected error again, the message is refused and goes into the dead letter queue for investigation. The exceptions are always logged.
 
 We can also have logging messages, on their own exchange (see below), to easily collect application logs.
 
