@@ -28,3 +28,13 @@ $ npm run publish
 ```
 
 The blog is published at [http://tech.allo-media.net/](http://tech.allo-media.net/).
+
+## Update dependencies
+
+To update the dependencies (for example to fix a security alert), run:
+
+```
+$ bundle update github-pages
+```
+
+This will update the `Gemfile.lock` file with the updated Gems compatible with github-pages.
