@@ -17,11 +17,21 @@ We make a distinction between *Business Services* and *Data Processing Services*
 
 DP Services are expected to be  **pure, stateless, services** that provide some kind of algorithmic data processing (computations, transformations…). Moreover, they are also context free: they should not depend on business rules, assumptions or external data sources. All they need to do their processing must be in the message they receive. They should not have to query a tier to get more data. DP services are kind of *universal* libraries and can even be provided by tiers.
 
+Examples of Data-Processing services:
+
+* A speech to text service has many different applications. All it needs as inputs are audio and a language reference. It doesn't need to persist any data.
+* An image thumbnailing service. It only takes an image and target dimensions as inputs. It has no side effects and may be used in many different businesses.
+
 Business Services implement the customers' workflows and only focus on business rules and requirements to orchestrate and implement the value addition upon our customers' audio and data. They make use of the DP services as a library for that. There are very specific to us: you would never want to externalize your business services.
 
 Business Services persist the data they produce and are their unique trusted source of truth.
 
 Business Services build and maintain their own customer configuration from events on the bus.
+
+Examples of Business Services:
+
+* At Allo-Media, we have a business service to qualify incoming calls. It listens for call transcripts and publishes qualification tags. It knows about our customer needs and qualify the calls accordingly. It persists the qualifications and is the unique source of trust for them.
+* Imagine an online shop. Among others, there would be a shopping kart service. For each online user, it would maintain the state of their shopping kart by listening to UI events like `ItemSelected`, `ItemRemoved` or stock events like `ItemStockLeft`…
 
 All services must be idempotent, that is, if they receive twice the exactly same message, they must behave identically and produce the same outputs.
 
