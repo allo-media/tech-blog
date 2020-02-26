@@ -69,7 +69,7 @@ All the messages that “cascade” from the same source event, share a common i
 - it is created by an *Event* (never by *Commands*) that is published for reasons external to the bus and not as a reaction to other *Event*s; we call that *Event* the *initial event*.
 - Any message (Event, Command or Result) created as a reaction to another message *M*, takes and repeats the conversation ID of *M* as is.
 
-All consequent messages of a given initial event share the same conversation id, and no other event does. That way, we can easily trace and debug the actual pipeline of each incoming conversation for example.
+All consequent messages of a given initial event share the same conversation id, and no other event does. That way, we can easily trace and debug the actual pipeline of each incoming call for example.
 
 Finally, the message schemas must be forward compatible:
 
