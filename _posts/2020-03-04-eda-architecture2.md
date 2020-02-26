@@ -15,7 +15,7 @@ Today, we address the core design principles that were crucial in the success of
 
 We make a distinction between *Business Services* and *Data Processing Services* (a.k.a. utility services) to cleanly separate business logic from data processing complexity.
 
-DP Services are expected to be  **pure, stateless, services** that provide some kind of algorithmic data processing (computations, transformations, …). Moreover, they are also context free: they should not depend on business rules, assumptions or external data sources. All they need to do their processing must be in the message they receive. They should not have to query a tier to get more data. DP services are kind of *universal* libraries and can even be provided by tiers.
+DP Services are expected to be  **pure, stateless, services** that provide some kind of algorithmic data processing (computations, transformations…). Moreover, they are also context free: they should not depend on business rules, assumptions or external data sources. All they need to do their processing must be in the message they receive. They should not have to query a tier to get more data. DP services are kind of *universal* libraries and can even be provided by tiers.
 
 Business Services implement the customers' workflows and only focus on business rules and requirements to orchestrate and implement the value addition upon our customers' audio and data. They make use of the DP services as a library for that. There are very specific to us: you would never want to externalize your business services.
 
@@ -50,14 +50,14 @@ The command contains the return "address" to which the result is to be sent and 
 
 A Result contains the result of the process, that can be the successful outcome, or an error, and the correlation identifier.
 
-Error results are expected and documented: they are “normal” errors, not bug reports. Bug exceptions *must not return an error result*. In case of unexpected error, the service will replace the input command on the queue once, and if a second try raises an unexpected error again, the message is refused and goes into the dead letter queue for investigation. The exceptions are always logged.
+Error results are expected and documented: they are “normal” errors, not bug reports. Bug exceptions *must not return an error result*. In case of unexpected error, the service will requeue the input command to retry it once, and if a second try raises an unexpected error again, the message is refused and goes into the dead letter queue for investigation. The exceptions are always logged.
 
 We can also have logging messages, on their own exchange (see below), to easily collect application logs.
 
-All messages contain a conversation identifier which has the following properties:
+All the messages that “cascade” from the same source event, share a common identifier, called the *conversation identifier*, which has the following properties:
 - it is unique in time;
 - it is created by an *Event* (never by *Commands*) that is published for reasons external to the bus and not as a reaction to other *Event*s; we call that *Event* the *initial event*.
-- Any Event, Command, Result created as a reaction to another message *M*, takes and repeats the `conversation_id` of *M* as is.
+- Any message (Event, Command or Result) created as a reaction to another message *M*, takes and repeats the conversation ID of *M* as is.
 
 All consequent messages of a given initial event share the same conversation id, and no other event does. That way, we can easily trace and debug the actual pipeline of each incoming conversation for example.
 
