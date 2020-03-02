@@ -1,4 +1,44 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2019-12-09T12:22:59+01:00</updated><id>/feed.xml</id><title type="html">Allo-Media Technical Blog</title><subtitle>Random things we're discovering &amp; learning at Allo-Media.</subtitle><entry><title type="html">ElasticSearch Percolator Use Case for Document Classification</title><link href="/python/2019/12/05/elasticsearch-percolator-qualification.html" rel="alternate" type="text/html" title="ElasticSearch Percolator Use Case for Document Classification" /><published>2019-12-05T12:00:00+01:00</published><updated>2019-12-05T12:00:00+01:00</updated><id>/python/2019/12/05/elasticsearch-percolator-qualification</id><content type="html" xml:base="/python/2019/12/05/elasticsearch-percolator-qualification.html">&lt;p&gt;Currently at Allo-Media, we use Elasticsearch in its general workflow which is to create an index and store documents holding our phone call audio transcripts metadata, and then allowing to search through these documents given some business criteria like: “Give me all phone calls from client Acme, where the customer speaks about the French strike”.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2020-03-02T18:10:42+01:00</updated><id>/feed.xml</id><title type="html">Allo-Media Technical Blog</title><subtitle>Random things we're discovering &amp; learning at Allo-Media.</subtitle><entry><title type="html">An event driven architecture</title><link href="/architecture/2020/02/24/eda-architecture.html" rel="alternate" type="text/html" title="An event driven architecture" /><published>2020-02-24T12:53:00+01:00</published><updated>2020-02-24T12:53:00+01:00</updated><id>/architecture/2020/02/24/eda-architecture</id><content type="html" xml:base="/architecture/2020/02/24/eda-architecture.html">&lt;p&gt;At &lt;a href=&quot;https://www.allo-media.net/en/&quot;&gt;Allo-Media&lt;/a&gt;, like many other businesses, our value chain looks like a pipeline: we collect conversations (mainly through phone) sent to us by our customers, we transcribe them, we tag the transcripts with named entities, we anonymize both the transcript and the audio, then we qualify the content with semantic tags, and finally we index them and provide a UI and API to consult, search, analyze the conversations. All those steps are completed automatically by NLP and AI algorithms.&lt;/p&gt;
+
+&lt;p&gt;Such pipelines are well suited for service based architectures. If you need to add a new feature, you introduce a new service into the pipeline.&lt;/p&gt;
+
+&lt;p&gt;Our first take at it was based on REST services.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/eventail/old_pipeline.png&quot; alt=&quot;Old pipeline with REST services&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Unfortunately, that approach had many drawbacks:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;it introduces strong coupling between components, as each service has to know about the other related services, their addresses, their purposes, their APIs…;&lt;/li&gt;
+  &lt;li&gt;load balancing requires ad hoc solutions;&lt;/li&gt;
+  &lt;li&gt;high availability is tricky because of the synchronous communication: if the requested service is down, the caller has to implement complex “retry later” strategies or give up! And so on for each service.&lt;/li&gt;
+  &lt;li&gt;upgrading or adding new services is a lot of work as it impacts other services and requires careful coordinated releases. Plus, you have to provide them with IP and DNS addresses.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;So one year later, as our activity grew and development accelerated, we quickly realized that we needed:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;maximum service decoupling;&lt;/li&gt;
+  &lt;li&gt;easy distribution;&lt;/li&gt;
+  &lt;li&gt;no-brainer load balancing;&lt;/li&gt;
+  &lt;li&gt;one to one, one to many, many to one, many to many asynchronous communications;&lt;/li&gt;
+  &lt;li&gt;high availability: hot restart of services, transparent addition or removal of service instances (workers), resilience to (reasonable) downtime of some services;&lt;/li&gt;
+  &lt;li&gt;support for heavy payloads (megabytes of mp3 audio);&lt;/li&gt;
+  &lt;li&gt;no data loss, whatever happens.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;enter-the-event-driven-architecture&quot;&gt;Enter the event driven architecture&lt;/h2&gt;
+
+&lt;p&gt;The best way to achieve those goals is to free your mind from the classical pipeline point of view and instead see the value chain as an ecosystem of business services, each focused on providing a specific value and reacting to events (inputs) and producing new events (outputs). This new metaphor has not only technical benefits, but also business and organizational ones. By reasoning in terms of business units of your value chain, its easier to identify the people involved, the business experts who are the references for the job, the exact value added by the service, etc…&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/eventail/new_pipeline.png&quot; alt=&quot;New event based pipeline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Events are precisely defined messages that streams on a message bus, and each logical service (implementing one such business service as explained above) subscribes to the events that are relevant to it, without needing any knowledge about what produced them and how. They also push their own events on the bus, without caring about what consumes them.&lt;/p&gt;
+
+&lt;p&gt;In that way, we completely decouple the services between each other and the message broker running the message bus provides us with load balancing, distribution and high availability for free.&lt;/p&gt;
+
+&lt;p&gt;Now, the messages &lt;em&gt;are&lt;/em&gt; the API, the only business and technical reference.&lt;/p&gt;
+
+&lt;p&gt;After much thinking and experiments, we came with core design principles that are very important for the success of such an event driven architecture and after 4 months of production use, we are very glad we complied with them from the start. But that’s the subject of another blog post coming soon. Stay tuned!&lt;/p&gt;</content><author><name></name></author><category term="services" /><category term="event" /><category term="bus" /><category term="architecture" /><summary type="html">Why and How we ditched our old architecture based on synchronous REST services for a completely asynchronous event driven architecture.</summary></entry><entry><title type="html">ElasticSearch Percolator Use Case for Document Classification</title><link href="/python/2019/12/05/elasticsearch-percolator-qualification.html" rel="alternate" type="text/html" title="ElasticSearch Percolator Use Case for Document Classification" /><published>2019-12-05T12:00:00+01:00</published><updated>2019-12-05T12:00:00+01:00</updated><id>/python/2019/12/05/elasticsearch-percolator-qualification</id><content type="html" xml:base="/python/2019/12/05/elasticsearch-percolator-qualification.html">&lt;p&gt;Currently at Allo-Media, we use Elasticsearch in its general workflow which is to create an index and store documents holding our phone call audio transcripts metadata, and then allowing to search through these documents given some business criteria like: “Give me all phone calls from client Acme, where the customer speaks about the French strike”.&lt;/p&gt;
 
 &lt;p&gt;The percolator feature from Elasticsearch allows to make a reverse search. We store search queries as documents in its own index, and then we can percolate new call documents and retrieve what search queries match. One use case to use the percolator is document classification.&lt;/p&gt;
 
