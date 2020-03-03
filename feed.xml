@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2020-03-02T18:10:42+01:00</updated><id>/feed.xml</id><title type="html">Allo-Media Technical Blog</title><subtitle>Random things we're discovering &amp; learning at Allo-Media.</subtitle><entry><title type="html">An event driven architecture</title><link href="/architecture/2020/02/24/eda-architecture.html" rel="alternate" type="text/html" title="An event driven architecture" /><published>2020-02-24T12:53:00+01:00</published><updated>2020-02-24T12:53:00+01:00</updated><id>/architecture/2020/02/24/eda-architecture</id><content type="html" xml:base="/architecture/2020/02/24/eda-architecture.html">&lt;p&gt;At &lt;a href=&quot;https://www.allo-media.net/en/&quot;&gt;Allo-Media&lt;/a&gt;, like many other businesses, our value chain looks like a pipeline: we collect conversations (mainly through phone) sent to us by our customers, we transcribe them, we tag the transcripts with named entities, we anonymize both the transcript and the audio, then we qualify the content with semantic tags, and finally we index them and provide a UI and API to consult, search, analyze the conversations. All those steps are completed automatically by NLP and AI algorithms.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2020-03-03T10:40:54+01:00</updated><id>/feed.xml</id><title type="html">Allo-Media Technical Blog</title><subtitle>Random things we're discovering &amp; learning at Allo-Media.</subtitle><entry><title type="html">An event driven architecture</title><link href="/architecture/2020/02/24/eda-architecture.html" rel="alternate" type="text/html" title="An event driven architecture" /><published>2020-02-24T12:53:00+01:00</published><updated>2020-02-24T12:53:00+01:00</updated><id>/architecture/2020/02/24/eda-architecture</id><content type="html" xml:base="/architecture/2020/02/24/eda-architecture.html">&lt;p&gt;At &lt;a href=&quot;https://www.allo-media.net/en/&quot;&gt;Allo-Media&lt;/a&gt;, like many other businesses, our value chain looks like a pipeline: we collect conversations (mainly through phone) sent to us by our customers, we transcribe them, we tag the transcripts with named entities, we anonymize both the transcript and the audio, then we qualify the content with semantic tags, and finally we index them and provide a UI and API to consult, search, analyze the conversations. All those steps are completed automatically by NLP and AI algorithms.&lt;/p&gt;
 
 &lt;p&gt;Such pipelines are well suited for service based architectures. If you need to add a new feature, you introduce a new service into the pipeline.&lt;/p&gt;
 
@@ -6,10 +6,10 @@
 
 &lt;p&gt;&lt;img src=&quot;/assets/eventail/old_pipeline.png&quot; alt=&quot;Old pipeline with REST services&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;Unfortunately, that approach had many drawbacks:&lt;/p&gt;
+&lt;p&gt;Unfortunately, as you can see on the schema above, that approach had many drawbacks:&lt;/p&gt;
 &lt;ul&gt;
-  &lt;li&gt;it introduces strong coupling between components, as each service has to know about the other related services, their addresses, their purposes, their APIs…;&lt;/li&gt;
-  &lt;li&gt;load balancing requires ad hoc solutions;&lt;/li&gt;
+  &lt;li&gt;it introduces strong coupling between components, as almost each service has to know about the other related services, their addresses, their purposes, their APIs…;&lt;/li&gt;
+  &lt;li&gt;load balancing requires ad hoc solutions (like for the &lt;em&gt;Transcription Pool Manager&lt;/em&gt; with &lt;em&gt;Celery&lt;/em&gt;);&lt;/li&gt;
   &lt;li&gt;high availability is tricky because of the synchronous communication: if the requested service is down, the caller has to implement complex “retry later” strategies or give up! And so on for each service.&lt;/li&gt;
   &lt;li&gt;upgrading or adding new services is a lot of work as it impacts other services and requires careful coordinated releases. Plus, you have to provide them with IP and DNS addresses.&lt;/li&gt;
 &lt;/ul&gt;
@@ -30,9 +30,11 @@
 
 &lt;p&gt;The best way to achieve those goals is to free your mind from the classical pipeline point of view and instead see the value chain as an ecosystem of business services, each focused on providing a specific value and reacting to events (inputs) and producing new events (outputs). This new metaphor has not only technical benefits, but also business and organizational ones. By reasoning in terms of business units of your value chain, its easier to identify the people involved, the business experts who are the references for the job, the exact value added by the service, etc…&lt;/p&gt;
 
+&lt;p&gt;Here is the schema of our new architecture:&lt;/p&gt;
+
 &lt;p&gt;&lt;img src=&quot;/assets/eventail/new_pipeline.png&quot; alt=&quot;New event based pipeline&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;Events are precisely defined messages that streams on a message bus, and each logical service (implementing one such business service as explained above) subscribes to the events that are relevant to it, without needing any knowledge about what produced them and how. They also push their own events on the bus, without caring about what consumes them.&lt;/p&gt;
+&lt;p&gt;In this new architecture, events are precisely defined messages that streams on a message bus, and each logical service (implementing one such business service as explained above) subscribes to the events that are relevant to it, without needing any knowledge about what produced them and how. They also push their own events on the bus, without caring about what consumes them.&lt;/p&gt;
 
 &lt;p&gt;In that way, we completely decouple the services between each other and the message broker running the message bus provides us with load balancing, distribution and high availability for free.&lt;/p&gt;
 
